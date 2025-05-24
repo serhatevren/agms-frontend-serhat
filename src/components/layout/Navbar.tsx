@@ -64,30 +64,15 @@ export default function Navbar({
     : "";
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm sticky top-0 z-20">
+    <nav className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm sticky top-0 z-20 pl-[290px]">
       <div className="flex items-center gap-2">
-        {onSidebarToggle && (
-          <button
-            onClick={onSidebarToggle}
-            className="p-2 rounded hover:bg-gray-100"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
-        )}
-        <Link href="/main" className="text-xl font-bold text-gray-800">
-          IZTECH - AGMS
+        <img
+          src="/iztech-logo.png"
+          alt="IZTECH Logo"
+          className="h-12 w-12 object-contain"
+        />
+        <Link href="/dashboard" className="font-extrabold text-2xl tracking-tight text-[#7c0a02]">
+          IZTECH&nbsp;<span className="text-black">AGMS</span>
         </Link>
       </div>
 
