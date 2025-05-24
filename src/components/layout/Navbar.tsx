@@ -29,22 +29,24 @@ export default function Navbar({ onSidebarToggle }: { onSidebarToggle?: () => vo
   const userName = user ? `${user.name} ${user.surname}` : "Kullanıcı";
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm sticky top-0 z-20">
-      <div className="flex items-center gap-2">
+    <nav className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm sticky top-0 z-20 pl-[220px]">
+      <div className="flex items-center gap-2 min-w-[220px]">
         <button onClick={onSidebarToggle} className="p-2 rounded hover:bg-[#f3eaea]">
           <Menu size={22} className="text-[#7c0a02]" />
         </button>
-        <img
-          src="/iztech-logo.png"
-          alt="IZTECH Logo"
-          className="h-9 w-9 object-contain"
-        />
-        <Link
-          href="/home"
-          className="font-bold text-lg tracking-tight text-[#7c0a02]"
-        >
-          IZTECH - AGMS
-        </Link>
+        <div className="flex items-center gap-1 ml-0">
+          <img
+            src="/iztech-logo.png"
+            alt="IZTECH Logo"
+            className="h-12 w-12 object-contain"
+          />
+          <Link
+            href="/dashboard"
+            className="font-extrabold text-2xl tracking-tight text-[#7c0a02]"
+          >
+            IZTECH&nbsp;<span className="text-black">AGMS</span>
+          </Link>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
