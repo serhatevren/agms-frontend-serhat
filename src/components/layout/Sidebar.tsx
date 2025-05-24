@@ -13,9 +13,47 @@ const handleSeveranceRequestClick = () => {
 
 function getMenuItems(user: any) {
   if (!user) return [];
-  const role = user.role || user.userType;
+  // Staff sub-roles
+  if (user.userType === 1) {
+    switch (user.staffRole) {
+      case 0: // Rectorate
+        return [
+          { name: "Home", icon: <Home size={18} />, href: "/home" },
+          { name: "Top Students", icon: <Users size={18} />, href: "/rectorate" },
+          { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
+        ];
+      case 1: // Student Affairs
+        return [
+          { name: "Home", icon: <Home size={18} />, href: "/home" },
+          { name: "Severance Requests", icon: <FileText size={18} />, onClick: handleSeveranceRequestClick },
+          { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
+          { name: "Top Students", icon: <Users size={18} />, href: "/top-students" },
+          { name: "Ceremony Planning", icon: <Calendar size={18} />, href: "/ceremony" },
+          { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
+        ];
+      case 2: // Faculty Deans Office
+        return [
+          { name: "Home", icon: <Home size={18} />, href: "/home" },
+          { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
+          { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
+        ];
+      case 3: // Department Secretary
+        return [
+          { name: "Home", icon: <Home size={18} />, href: "/home" },
+          { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
+          { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
+        ];
+      default:
+        // Other staff (library, sks, doitp, career, etc.)
+        return [
+          { name: "Home", icon: <Home size={18} />, href: "/home" },
+          { name: "Severance Requests", icon: <FileText size={18} />, onClick: handleSeveranceRequestClick },
+          { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
+        ];
+    }
+  }
   // Advisor
-  if (role === "advisor" || role === 2) {
+  if (user.userType === 2 || user.role === "advisor") {
     return [
       { name: "Home", icon: <Home size={18} />, href: "/home" },
       { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
@@ -24,47 +62,12 @@ function getMenuItems(user: any) {
     ];
   }
   // Student
-  if (role === "student" || role === 0) {
+  if (user.userType === 0 || user.role === "student") {
     return [
       { name: "Home", icon: <Home size={18} />, href: "/home" },
       { name: "Severance Requests", icon: <FileText size={18} />, onClick: handleSeveranceRequestClick },
       { name: "Graduation Status", icon: <BadgeCheck size={18} />, href: "/graduation-status" },
       { name: "Messages", icon: <Mail size={18} />, href: "/messages/inbox" },
-      { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
-    ];
-  }
-  // Library, sks, doitp, career
-  if (["library", "sks", "doitp", "career"].includes(role)) {
-    return [
-      { name: "Home", icon: <Home size={18} />, href: "/home" },
-      { name: "Severance Requests", icon: <FileText size={18} />, onClick: handleSeveranceRequestClick },
-      { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
-    ];
-  }
-  // Student Affairs
-  if (role === "studentAffairs") {
-    return [
-      { name: "Home", icon: <Home size={18} />, href: "/home" },
-      { name: "Severance Requests", icon: <FileText size={18} />, onClick: handleSeveranceRequestClick },
-      { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
-      { name: "Top Students", icon: <Users size={18} />, href: "/top-students" },
-      { name: "Ceremony Planning", icon: <Calendar size={18} />, href: "/ceremony" },
-      { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
-    ];
-  }
-  // Department Secretary, Faculty Deans Office
-  if (["departmentSecretary", "facultyDeansOffice"].includes(role)) {
-    return [
-      { name: "Home", icon: <Home size={18} />, href: "/home" },
-      { name: "Graduation Approval", icon: <Award size={18} />, href: "/graduation-approval" },
-      { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
-    ];
-  }
-  // Rectorate
-  if (role === "rectorate") {
-    return [
-      { name: "Home", icon: <Home size={18} />, href: "/home" },
-      { name: "Top Students", icon: <Users size={18} />, href: "/rectorate" },
       { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
     ];
   }
