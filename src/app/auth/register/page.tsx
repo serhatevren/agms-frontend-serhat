@@ -68,121 +68,93 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Yeni hesap oluşturun
-          </h2>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
+    <div
+      className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative"
+      style={{ backgroundImage: 'url(/graduation-bg.jpg)' }}
+    >
+      <div className="absolute inset-0 bg-black/70 z-0" />
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full">
+        <div className="mx-auto w-full max-w-md bg-white/90 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center">
+          <img src="/iztech-logo.png" alt="İztech Logo" className="w-24 h-24 mb-4 rounded-full bg-white p-2 shadow" />
+          <h1 className="text-2xl font-bold text-center text-[#7c0a02] mb-1">Yeni Hesap Oluşturun</h1>
+          <form className="w-full space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <label htmlFor="name" className="sr-only">
-                İsim
-              </label>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
               <input
                 {...register("name")}
                 id="name"
                 type="text"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] text-gray-900"
                 placeholder="İsim"
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.name.message}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="surname" className="sr-only">
-                Soyisim
-              </label>
+              <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">Soyisim</label>
               <input
                 {...register("surname")}
                 id="surname"
                 type="text"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] text-gray-900"
                 placeholder="Soyisim"
               />
               {errors.surname && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.surname.message}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.surname.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="email" className="sr-only">
-                Email adresi
-              </label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
               <input
                 {...register("email")}
                 id="email"
                 type="email"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                placeholder="Email adresi"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] text-gray-900"
+                placeholder="E-posta"
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.email.message}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="phoneNumber" className="sr-only">
-                Telefon numarası
-              </label>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Telefon numarası</label>
               <input
                 {...register("phoneNumber")}
                 id="phoneNumber"
                 type="tel"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] text-gray-900"
                 placeholder="Telefon numarası (isteğe bağlı)"
               />
               {errors.phoneNumber && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.phoneNumber.message}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.phoneNumber.message}</p>
               )}
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Şifre
-              </label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
               <input
                 {...register("password")}
                 id="password"
                 type="password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] text-gray-900"
                 placeholder="Şifre"
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.password.message}
-                </p>
+                <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
               )}
             </div>
-          </div>
-
-          <div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="w-full py-2 px-4 rounded-md bg-[#7c0a02] text-white font-semibold hover:bg-[#a50d0d] transition-colors duration-200 disabled:opacity-60 mt-2"
             >
-              {isSubmitting ? "Kayıt yapılıyor..." : "Kayıt ol"}
+              {isSubmitting ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
             </button>
-          </div>
-
-          <div className="text-sm text-center">
-            <Link
-              href="/auth/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Zaten hesabınız var mı? Giriş yapın
-            </Link>
-          </div>
-        </form>
+            <div className="text-center mt-2">
+              <Link href="/auth/login" className="text-xs text-[#7c0a02] hover:underline">Zaten hesabınız var mı? Giriş Yapın</Link>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
