@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
+import { authService } from "@/services/auth";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
@@ -16,7 +17,7 @@ export default function AuthenticatedLayout({
   requiredUserType,
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, setUser } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,20 @@ export default function AuthenticatedLayout({
       router.push("/auth/login");
       return;
     }
+
+    // Fetch complete user data if not already loaded
+    const fetchUserData = async () => {
+      try {
+        // Only fetch if user data is incomplete (missing name or surname)
+        if (user && (!user.name || !user.surname)) {
+          const userData = await authService.getCurrentUser();
+          setUser(userData);
+          console.log("AuthenticatedLayout: Updated user data", userData);
+        }
+      } catch (error) {
+        console.error("AuthenticatedLayout: Error fetching user data", error);
+      }
+    };
 
     if (requiredUserType !== undefined && user?.userType !== requiredUserType) {
       // Redirect to appropriate page based on user type
@@ -43,8 +58,10 @@ export default function AuthenticatedLayout({
         default:
           router.push("/auth/login");
       }
+    } else {
+      fetchUserData();
     }
-  }, [isAuthenticated, user, router, requiredUserType]);
+  }, [isAuthenticated, user, router, requiredUserType, setUser]);
 
   if (
     !isAuthenticated ||
@@ -62,7 +79,11 @@ export default function AuthenticatedLayout({
             <Sidebar />
           </div>
         )}
-        <main className={`flex-1 transition-all duration-200 ${sidebarOpen ? "ml-64" : "ml-0"} max-w-7xl mx-auto py-6 sm:px-6 lg:px-8`}>
+        <main
+          className={`flex-1 transition-all duration-200 ${
+            sidebarOpen ? "ml-64" : "ml-0"
+          } max-w-7xl mx-auto py-6 sm:px-6 lg:px-8`}
+        >
           {children}
         </main>
       </div>

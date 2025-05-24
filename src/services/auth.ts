@@ -5,6 +5,7 @@ import {
   LoginRequest,
   RegisterRequest,
   User,
+  CurrentUserResponse,
 } from "@/types/auth";
 
 const validateAuthResponse = (response: any): response is AuthResponse => {
@@ -58,11 +59,16 @@ const getUserFromToken = (
       payload.given_name ||
       payload[
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-      ],
+      ] ||
+      payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+      "",
     surname:
       payload.Surname ||
       payload.family_name ||
-      payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"],
+      payload[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+      ] ||
+      "",
     phoneNumber:
       payload.PhoneNumber ||
       payload[
@@ -160,6 +166,9 @@ export const authService = {
 
     const userType = response.data.userTypeValue || response.data.userType || 0;
     const staffRole = response.data.staffRoleValue || response.data.staffRole;
+    console.log("Using UserType from response:", userType);
+    console.log("Using StaffRole from response:", staffRole);
+
     const user = getUserFromToken(
       response.data.accessToken.token,
       userType,
@@ -189,5 +198,24 @@ export const authService = {
       { email }
     );
     return response.data;
+  },
+
+  async getCurrentUser(): Promise<User> {
+    const response = await axiosInstance.get<CurrentUserResponse>(
+      "/users/GetFromAuth"
+    );
+
+    const user: User = {
+      id: response.data.id,
+      email: response.data.email,
+      name: response.data.name,
+      surname: response.data.surname,
+      phoneNumber: response.data.phoneNumber,
+      isActive: response.data.isActive,
+      userType: response.data.userType,
+      staffRole: response.data.staffRole,
+    };
+
+    return user;
   },
 };

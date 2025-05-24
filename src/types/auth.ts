@@ -49,3 +49,15 @@ export interface AuthResponse {
   refreshToken: string;
   user: User;
 }
+
+// Current user endpoint response
+export interface CurrentUserResponse {
+  id: string;
+  email: string;
+  name: string;
+  surname: string;
+  phoneNumber?: string;
+  isActive: boolean;
+  userType: number;
+  staffRole?: number;
+}
