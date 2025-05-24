@@ -77,9 +77,7 @@ export default function AuthenticatedLayout({
         <div className="fixed inset-y-0 left-0 z-30 w-64">
           <Sidebar />
         </div>
-        <main
-          className={`flex-1 transition-all duration-200 ml-64 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8`}
-        >
+        <main className="flex-1 transition-all duration-200 ml-64 py-6 pl-10 pr-10">
           {children}
         </main>
       </div>
