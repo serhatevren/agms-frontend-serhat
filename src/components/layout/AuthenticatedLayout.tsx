@@ -72,17 +72,13 @@ export default function AuthenticatedLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar onSidebarToggle={() => setSidebarOpen((open) => !open)} />
+      <Navbar />
       <div className="flex">
-        {sidebarOpen && (
-          <div className="fixed inset-y-0 left-0 z-30 w-64">
-            <Sidebar />
-          </div>
-        )}
+        <div className="fixed inset-y-0 left-0 z-30 w-64">
+          <Sidebar />
+        </div>
         <main
-          className={`flex-1 transition-all duration-200 ${
-            sidebarOpen ? "ml-64" : "ml-0"
-          } max-w-7xl mx-auto py-6 sm:px-6 lg:px-8`}
+          className={`flex-1 transition-all duration-200 ml-64 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8`}
         >
           {children}
         </main>
