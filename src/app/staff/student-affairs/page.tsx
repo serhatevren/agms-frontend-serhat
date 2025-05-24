@@ -1,18 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { useAuthStore } from "@/store/auth";
 
-export default function StudentPage() {
+export default function StudentAffairsStaffPage() {
   const { user } = useAuthStore();
-  const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted || !user) {
+  if (!user || user.userType !== 1 || user.staffRole !== 1) {
     return null;
   }
 
@@ -23,7 +17,8 @@ export default function StudentPage() {
           Hoşgeldiniz, {user.name} {user.surname}!
         </h1>
         <p className="text-gray-600 mb-4">
-          AGMS sistemine öğrenci olarak giriş yaptınız.
+          AGMS sistemine Öğrenci İşleri Daire Başkanlığı Personeli olarak giriş
+          yaptınız.
         </p>
         <div className="border-t border-gray-200 pt-4">
           <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
@@ -43,11 +38,11 @@ export default function StudentPage() {
         <div className="mt-6">
           <div className="bg-blue-50 p-4 rounded-lg">
             <h2 className="text-lg font-semibold text-blue-800 mb-2">
-              Öğrenci Paneli
+              Öğrenci İşleri İşlemleri
             </h2>
             <p className="text-blue-600">
-              Mezuniyet başvurunuzu yapmak ve durumunu kontrol etmek için sol
-              menüyü kullanabilirsiniz.
+              Mezuniyet başvurularını incelemek, onaylamak ve öğrenci
+              belgelerini yönetmek için sol menüyü kullanabilirsiniz.
             </p>
           </div>
         </div>

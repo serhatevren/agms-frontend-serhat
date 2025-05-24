@@ -40,24 +40,7 @@ export default function RegisterPage() {
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
       setUser(response.user);
-
-      // Redirect based on user type
-      switch (response.user.userType) {
-        case 0: // Student
-          router.push("/student");
-          break;
-        case 1: // Staff
-          router.push("/staff");
-          break;
-        case 2: // Advisor
-          router.push("/advisor");
-          break;
-        case 3: // Admin
-          router.push("/admin");
-          break;
-        default:
-          router.push("/auth/login");
-      }
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Register error:", error);
       setError(
@@ -70,16 +53,27 @@ export default function RegisterPage() {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative"
-      style={{ backgroundImage: 'url(/graduation-bg.jpg)' }}
+      style={{ backgroundImage: "url(/graduation-bg.jpg)" }}
     >
       <div className="absolute inset-0 bg-black/70 z-0" />
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full">
         <div className="mx-auto w-full max-w-md bg-white/90 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center">
-          <img src="/iztech-logo.png" alt="İztech Logo" className="w-24 h-24 mb-4 rounded-full bg-white p-2 shadow" />
-          <h1 className="text-2xl font-bold text-center text-[#7c0a02] mb-1">Yeni Hesap Oluşturun</h1>
+          <img
+            src="/iztech-logo.png"
+            alt="İztech Logo"
+            className="w-24 h-24 mb-4 rounded-full bg-white p-2 shadow"
+          />
+          <h1 className="text-2xl font-bold text-center text-[#7c0a02] mb-1">
+            Yeni Hesap Oluşturun
+          </h1>
           <form className="w-full space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                İsim
+              </label>
               <input
                 {...register("name")}
                 id="name"
@@ -88,11 +82,18 @@ export default function RegisterPage() {
                 placeholder="İsim"
               />
               {errors.name && (
-                <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.name.message}
+                </p>
               )}
             </div>
             <div>
-              <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">Soyisim</label>
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Soyisim
+              </label>
               <input
                 {...register("surname")}
                 id="surname"
@@ -101,11 +102,18 @@ export default function RegisterPage() {
                 placeholder="Soyisim"
               />
               {errors.surname && (
-                <p className="mt-1 text-xs text-red-600">{errors.surname.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.surname.message}
+                </p>
               )}
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                E-posta
+              </label>
               <input
                 {...register("email")}
                 id="email"
@@ -114,11 +122,18 @@ export default function RegisterPage() {
                 placeholder="E-posta"
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 mb-1">Telefon numarası</label>
+              <label
+                htmlFor="phoneNumber"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Telefon numarası
+              </label>
               <input
                 {...register("phoneNumber")}
                 id="phoneNumber"
@@ -127,11 +142,18 @@ export default function RegisterPage() {
                 placeholder="Telefon numarası (isteğe bağlı)"
               />
               {errors.phoneNumber && (
-                <p className="mt-1 text-xs text-red-600">{errors.phoneNumber.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.phoneNumber.message}
+                </p>
               )}
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Şifre
+              </label>
               <input
                 {...register("password")}
                 id="password"
@@ -140,7 +162,9 @@ export default function RegisterPage() {
                 placeholder="Şifre"
               />
               {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.password.message}
+                </p>
               )}
             </div>
             <button
@@ -151,7 +175,12 @@ export default function RegisterPage() {
               {isSubmitting ? "Kayıt Yapılıyor..." : "Kayıt Ol"}
             </button>
             <div className="text-center mt-2">
-              <Link href="/auth/login" className="text-xs text-[#7c0a02] hover:underline">Zaten hesabınız var mı? Giriş Yapın</Link>
+              <Link
+                href="/auth/login"
+                className="text-xs text-[#7c0a02] hover:underline"
+              >
+                Zaten hesabınız var mı? Giriş Yapın
+              </Link>
             </div>
           </form>
         </div>

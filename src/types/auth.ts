@@ -19,6 +19,7 @@ export interface User {
   phoneNumber?: string;
   isActive: boolean;
   userType: number; // 0: Student, 1: Staff, 2: Advisor, 3: Admin
+  staffRole?: number; // 0: Rectorate, 1: StudentAffairs, 2: FacultyDeansOffice, 3: DepartmentSecretary
 }
 
 export interface AccessToken {
@@ -36,6 +37,10 @@ export interface BackendAuthResponse {
     expiration: Date;
     userId: string;
   };
+  userType: number;
+  userTypeValue: number;
+  staffRole?: number;
+  staffRoleValue?: number;
 }
 
 // This is what we use in our frontend

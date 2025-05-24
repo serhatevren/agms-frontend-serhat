@@ -20,7 +20,11 @@ const validateAuthResponse = (response: any): response is AuthResponse => {
 };
 
 // Helper function to get user info from token
-const getUserFromToken = (token: string): User => {
+const getUserFromToken = (
+  token: string,
+  userType: number,
+  staffRole?: number
+): User => {
   const base64Url = token.split(".")[1];
   const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
   const jsonPayload = decodeURIComponent(
@@ -33,15 +37,44 @@ const getUserFromToken = (token: string): User => {
   );
 
   const payload = JSON.parse(jsonPayload);
-  return {
-    id: payload.id || payload.nameid,
-    email: payload.email,
-    name: payload.given_name,
-    surname: payload.family_name,
-    phoneNumber: payload.phone_number,
+  console.log("Full JWT Payload:", payload);
+  console.log("UserType from backend response:", userType);
+  console.log("StaffRole from backend response:", staffRole);
+
+  const user: User = {
+    id:
+      payload.Id ||
+      payload.nameid ||
+      payload[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+      ],
+    email:
+      payload.Email ||
+      payload[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+      ],
+    name:
+      payload.Name ||
+      payload.given_name ||
+      payload[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+      ],
+    surname:
+      payload.Surname ||
+      payload.family_name ||
+      payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"],
+    phoneNumber:
+      payload.PhoneNumber ||
+      payload[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/mobilephone"
+      ],
     isActive: true,
-    userType: parseInt(payload.userType || "0"),
+    userType: userType, // Backend'den gelen userType'ı kullan
+    staffRole: staffRole, // Backend'den gelen staffRole'ü kullan
   };
+
+  console.log("Final User Object:", user);
+  return user;
 };
 
 export const authService = {
@@ -51,11 +84,23 @@ export const authService = {
       data
     );
 
+    console.log("Backend Response:", response.data);
+
     if (!response.data?.accessToken?.token) {
       throw new Error("Invalid response format from server");
     }
 
-    const user = getUserFromToken(response.data.accessToken.token);
+    // Backend'den gelen userType'ı kullan
+    const userType = response.data.userTypeValue || response.data.userType || 0;
+    const staffRole = response.data.staffRoleValue || response.data.staffRole;
+    console.log("Using UserType from response:", userType);
+    console.log("Using StaffRole from response:", staffRole);
+
+    const user = getUserFromToken(
+      response.data.accessToken.token,
+      userType,
+      staffRole
+    );
 
     const authResponse: AuthResponse = {
       accessToken: response.data.accessToken.token,
@@ -80,7 +125,13 @@ export const authService = {
       throw new Error("Invalid response format from server");
     }
 
-    const user = getUserFromToken(response.data.accessToken.token);
+    const userType = response.data.userTypeValue || response.data.userType || 0;
+    const staffRole = response.data.staffRoleValue || response.data.staffRole;
+    const user = getUserFromToken(
+      response.data.accessToken.token,
+      userType,
+      staffRole
+    );
 
     const authResponse: AuthResponse = {
       accessToken: response.data.accessToken.token,
@@ -107,7 +158,13 @@ export const authService = {
       throw new Error("Invalid response format from server");
     }
 
-    const user = getUserFromToken(response.data.accessToken.token);
+    const userType = response.data.userTypeValue || response.data.userType || 0;
+    const staffRole = response.data.staffRoleValue || response.data.staffRole;
+    const user = getUserFromToken(
+      response.data.accessToken.token,
+      userType,
+      staffRole
+    );
 
     const authResponse: AuthResponse = {
       accessToken: response.data.accessToken.token,

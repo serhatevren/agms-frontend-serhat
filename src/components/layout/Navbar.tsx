@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Navbar() {
   const { user, logout } = useAuthStore();
   const router = useRouter();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -45,11 +47,12 @@ export default function Navbar() {
                 </svg>
               </button>
 
-              <div className="ml-3 relative group">
+              <div className="ml-3 relative">
                 <div>
                   <button
                     type="button"
                     className="flex items-center max-w-xs rounded-full focus:outline-none"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
                   >
                     <span className="sr-only">Open user menu</span>
                     <div className="flex items-center">
@@ -57,7 +60,9 @@ export default function Navbar() {
                         {user?.name} {user?.surname}
                       </span>
                       <svg
-                        className="h-5 w-5 text-gray-400"
+                        className={`h-5 w-5 text-gray-400 transform transition-transform ${
+                          isMenuOpen ? "rotate-180" : ""
+                        }`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -72,20 +77,26 @@ export default function Navbar() {
                     </div>
                   </button>
                 </div>
-                <div className="hidden group-hover:block absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
-                  <Link
-                    href="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Profil Ayarları
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
-                  >
-                    Çıkış Yap
-                  </button>
-                </div>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Profil Ayarları
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                    >
+                      Çıkış Yap
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

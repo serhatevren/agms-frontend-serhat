@@ -1,51 +1,50 @@
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import Navbar from "./Navbar";
 
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
-  requiredUserType?: number;
 }
 
 export default function AuthenticatedLayout({
   children,
-  requiredUserType,
 }: AuthenticatedLayoutProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
       router.push("/auth/login");
       return;
     }
 
-    if (requiredUserType !== undefined && user?.userType !== requiredUserType) {
-      // Redirect to appropriate page based on user type
-      switch (user?.userType) {
-        case 0: // Student
-          router.push("/student");
-          break;
-        case 1: // Staff
-          router.push("/staff");
-          break;
-        case 2: // Advisor
-          router.push("/advisor");
-          break;
-        case 3: // Admin
-          router.push("/admin");
-          break;
-        default:
-          router.push("/auth/login");
-      }
+    // Eğer login sayfasında veya root path'te ise main'e yönlendir
+    if (pathname === "/" || pathname.startsWith("/auth/")) {
+      router.push("/main");
+      return;
     }
-  }, [isAuthenticated, user, router, requiredUserType]);
 
-  if (
-    !isAuthenticated ||
-    (requiredUserType !== undefined && user?.userType !== requiredUserType)
-  ) {
+    // Eğer eski sayfalara erişmeye çalışıyorsa main'e yönlendir
+    if (
+      pathname.startsWith("/student") ||
+      pathname.startsWith("/staff") ||
+      pathname.startsWith("/advisor") ||
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/dashboard")
+    ) {
+      router.push("/main");
+      return;
+    }
+
+    setIsLoading(false);
+  }, [isAuthenticated, user, router, pathname]);
+
+  if (isLoading || !isAuthenticated || !user) {
     return null;
   }
 
