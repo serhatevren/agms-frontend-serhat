@@ -46,16 +46,43 @@ export default function LoginPage() {
       const response = await authService.login(data);
       console.log("Login response:", response);
 
+      if (
+        !response ||
+        !response.user ||
+        typeof response.user.userType === "undefined"
+      ) {
+        throw new Error("Invalid response from server");
+      }
+
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
       setUser(response.user);
 
       console.log("User state updated, redirecting...");
-      router.push("/dashboard");
+      switch (response.user.userType) {
+        case 0: // Student
+          router.push("/student");
+          break;
+        case 1: // Staff
+          router.push("/staff");
+          break;
+        case 2: // Advisor
+          router.push("/advisor");
+          break;
+        case 3: // Admin
+          router.push("/admin");
+          break;
+        default:
+          router.push("/auth/login");
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       if (error.response?.status === 500) {
         setError("Email veya şifre hatalı");
+      } else if (error.message === "Invalid response from server") {
+        setError(
+          "Sunucudan geçersiz yanıt alındı. Lütfen daha sonra tekrar deneyin."
+        );
       } else {
         setError("Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.");
       }

@@ -11,20 +11,6 @@ export interface RegisterRequest {
   phoneNumber?: string;
 }
 
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    name: string;
-    surname: string;
-    phoneNumber?: string;
-    isActive: boolean;
-    userType: number;
-  };
-}
-
 export interface User {
   id: string;
   email: string;
@@ -32,5 +18,29 @@ export interface User {
   surname: string;
   phoneNumber?: string;
   isActive: boolean;
-  userType: number;
+  userType: number; // 0: Student, 1: Staff, 2: Advisor, 3: Admin
+}
+
+export interface AccessToken {
+  token: string;
+  expiration: Date;
+}
+
+export interface BackendAuthResponse {
+  accessToken: {
+    token: string;
+    expiration: Date;
+  };
+  refreshToken?: {
+    token: string;
+    expiration: Date;
+    userId: string;
+  };
+}
+
+// This is what we use in our frontend
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: User;
 }

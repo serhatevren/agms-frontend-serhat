@@ -8,6 +8,7 @@ import Link from "next/link";
 import { authService } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { AuthState } from "@/store/auth";
+import { useState } from "react";
 
 const registerSchema = z.object({
   email: z.string().email("Geçerli bir email adresi giriniz"),
@@ -22,6 +23,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const setUser = useAuthStore((state: AuthState) => state.setUser);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     register,
@@ -33,14 +35,35 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
+      setError(null);
       const response = await authService.register(data);
       localStorage.setItem("accessToken", response.accessToken);
       localStorage.setItem("refreshToken", response.refreshToken);
       setUser(response.user);
-      router.push("/dashboard");
-    } catch (error) {
+
+      // Redirect based on user type
+      switch (response.user.userType) {
+        case 0: // Student
+          router.push("/student");
+          break;
+        case 1: // Staff
+          router.push("/staff");
+          break;
+        case 2: // Advisor
+          router.push("/advisor");
+          break;
+        case 3: // Admin
+          router.push("/admin");
+          break;
+        default:
+          router.push("/auth/login");
+      }
+    } catch (error: any) {
       console.error("Register error:", error);
-      // TODO: Add proper error handling
+      setError(
+        error.response?.data?.message ||
+          "Kayıt olurken bir hata oluştu. Lütfen tekrar deneyin."
+      );
     }
   };
 
