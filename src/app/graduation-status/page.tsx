@@ -73,13 +73,13 @@ export default function GraduationStatusPage() {
         setTranscriptData(myTranscript);
       } else {
         console.log("No transcript found for current user");
-        setError("Henüz bir transcript bulunamadı.");
+        setError("No transcript found yet.");
       }
     } catch (error: any) {
       console.error("Error fetching transcript data:", error);
       console.error("Error response:", error.response?.data);
       setError(
-        "Transcript bilgileri yüklenirken bir hata oluştu: " +
+        "An error occurred while loading transcript data: " +
           (error.response?.data?.message || error.message)
       );
     } finally {
@@ -92,12 +92,12 @@ export default function GraduationStatusPage() {
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
     } else {
-      alert("Lütfen sadece PDF dosyası seçin.");
+      alert("Please select only PDF files.");
     }
   };
 
   const handleUpload = () => {
-    alert("Yükleme özelliği henüz aktif değil.");
+    alert("Upload feature is not active yet.");
   };
 
   if (loading) {
@@ -123,9 +123,9 @@ export default function GraduationStatusPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h1 className="text-2xl font-bold text-gray-900">Mezuniyet Durumu</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Graduation Status</h1>
           <p className="text-gray-600 mt-2">
-            Akademik bilgileriniz ve transcript durumunuz
+            Your academic information and transcript status
           </p>
         </div>
 
@@ -153,12 +153,10 @@ export default function GraduationStatusPage() {
               </svg>
               <div>
                 <h3 className="text-yellow-800 font-medium">
-                  Transcript Henüz Oluşturulmamış
+                  Transcript Not Created Yet
                 </h3>
                 <p className="text-yellow-700 mt-1">
-                  Akademik transcript'iniz henüz sistem tarafından
-                  oluşturulmamıştır. Lütfen akademik danışmanınız veya öğrenci
-                  işleri ile iletişime geçin.
+                  Your academic transcript has not been created by the system yet. Please contact your academic advisor or student affairs.
                 </p>
               </div>
             </div>
@@ -213,7 +211,7 @@ export default function GraduationStatusPage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Tamamlanan Kredi
+                    Completed Credits
                   </h3>
                   <p className="text-2xl font-bold text-green-600">
                     {transcriptData?.completedCredit || 0}
@@ -241,7 +239,7 @@ export default function GraduationStatusPage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Kalan Kredi
+                    Remaining Credits
                   </h3>
                   <p className="text-2xl font-bold text-yellow-600">
                     {transcriptData?.remainingCredit || 0}
@@ -269,7 +267,7 @@ export default function GraduationStatusPage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Tamamlanan Ders
+                    Completed Courses
                   </h3>
                   <p className="text-2xl font-bold text-purple-600">
                     {transcriptData?.completedCourseCount || 0}
@@ -284,12 +282,12 @@ export default function GraduationStatusPage() {
         {transcriptData && (
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Mezuniyet İlerlemesi
+              Graduation Progress
             </h2>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
-                  <span>Kredi İlerlemesi</span>
+                  <span>Credit Progress</span>
                   <span>
                     {transcriptData?.completedCredit || 0} /{" "}
                     {transcriptData?.totalRequiredCredit || 0}
@@ -313,7 +311,7 @@ export default function GraduationStatusPage() {
 
               <div>
                 <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
-                  <span>Ders İlerlemesi</span>
+                  <span>Course Progress</span>
                   <span>
                     {transcriptData?.completedCourseCount || 0} /{" "}
                     {transcriptData?.requiredCourseCount || 0}
@@ -342,21 +340,21 @@ export default function GraduationStatusPage() {
         {transcriptData && (
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Transcript Bilgileri
+              Transcript Information
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mezuniyet Yılı
+                  Graduation Year
                 </label>
                 <p className="text-gray-900">
-                  {transcriptData.graduationYear || "Henüz mezun olmadı"}
+                  {transcriptData.graduationYear || "Not graduated yet"}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Bölüm Sıralaması
+                  Department Ranking
                 </label>
                 <p className="text-gray-900">
                   {transcriptData.departmentGraduationRank || "N/A"}
@@ -365,7 +363,7 @@ export default function GraduationStatusPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fakülte Sıralaması
+                  Faculty Ranking
                 </label>
                 <p className="text-gray-900">
                   {transcriptData.facultyGraduationRank || "N/A"}
@@ -374,7 +372,7 @@ export default function GraduationStatusPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Üniversite Sıralaması
+                  University Ranking
                 </label>
                 <p className="text-gray-900">
                   {transcriptData.universityGraduationRank || "N/A"}
@@ -384,7 +382,7 @@ export default function GraduationStatusPage() {
               {transcriptData.transcriptDescription && (
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Açıklama
+                    Description
                   </label>
                   <p className="text-gray-900">
                     {transcriptData.transcriptDescription}
@@ -398,7 +396,7 @@ export default function GraduationStatusPage() {
         {/* Transcript Upload */}
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Transcript Yükleme
+            Transcript Upload
           </h2>
 
           {transcriptData?.fileAttachment && (
@@ -418,7 +416,7 @@ export default function GraduationStatusPage() {
                   />
                 </svg>
                 <span className="text-green-800 font-medium">
-                  Mevcut Dosya: {transcriptData.fileAttachment.fileName}
+                  Current File: {transcriptData.fileAttachment.fileName}
                 </span>
               </div>
             </div>
@@ -444,7 +442,7 @@ export default function GraduationStatusPage() {
                   <span className="mt-2 block text-sm font-medium text-gray-900">
                     {selectedFile
                       ? selectedFile.name
-                      : "Transcript PDF dosyasını seçin"}
+                      : "Select transcript PDF file"}
                   </span>
                   <input
                     id="file-upload"
@@ -456,7 +454,7 @@ export default function GraduationStatusPage() {
                   />
                 </label>
                 <p className="mt-2 text-xs text-gray-500">
-                  Sadece PDF dosyaları kabul edilir (Maksimum 10MB)
+                  Only PDF files are accepted (Maximum 10MB)
                 </p>
               </div>
               <div className="mt-4">
@@ -478,7 +476,7 @@ export default function GraduationStatusPage() {
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                     />
                   </svg>
-                  Yükle (Henüz Aktif Değil)
+                  Upload (Not Active Yet)
                 </button>
               </div>
             </div>

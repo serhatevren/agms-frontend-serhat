@@ -435,18 +435,18 @@ export default function TopStudentsPage() {
       <div className="p-8 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            En Başarılı Öğrenciler
+            Top Students
           </h1>
           <div className="flex items-center space-x-4">
             {/* Approval Status Indicator */}
             {isCurrentListApproved() && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                ✓ Onaylandı
+                ✓ Approved
               </span>
             )}
             {isCurrentListSentToRectorate() && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                ✓ Rektörlüğe Gönderildi
+                ✓ Sent Rectorate
               </span>
             )}
 
@@ -458,7 +458,7 @@ export default function TopStudentsPage() {
                   disabled={actionLoading}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Onayla
+                  Approve
                 </button>
               )}
               {isCurrentListApproved() && !isCurrentListSentToRectorate() && (
@@ -468,14 +468,14 @@ export default function TopStudentsPage() {
                     disabled={actionLoading}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Onayı Geri Al
+                    Approval Revocation
                   </button>
                   <button
                     onClick={() => setShowSendToRectorateModal(true)}
                     disabled={actionLoading}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Rektörlüğe Gönder
+                    Send to Rectorate
                   </button>
                 </>
               )}
@@ -540,22 +540,22 @@ export default function TopStudentsPage() {
                 #
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Numara
+                Student Number
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                İsim
+                Name
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Soyisim
+                Surname
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Bölüm
+                Department
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Fakülte
+                Faculty
               </th>
               <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                GNO
+                GPA
               </th>
             </tr>
           </thead>
@@ -563,7 +563,7 @@ export default function TopStudentsPage() {
             {displayedStudents.length === 0 ? (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-gray-600">
-                  Kayıt bulunamadı.
+                  No records found.
                 </td>
               </tr>
             ) : (
@@ -603,10 +603,10 @@ export default function TopStudentsPage() {
           setShowApproveModal(false);
           handleApprove();
         }}
-        title="Liste Onayı"
-        message="Bu listeyi onaylamak istediğinizden emin misiniz? Bu işlem geri alınabilir."
-        confirmText="Onayla"
-        cancelText="İptal"
+        title="List Approval"
+        message="Are you sure you want to approve this list? This action can be reversed."
+        confirmText="Approve"
+        cancelText="Cancel"
         confirmButtonColor="green"
         isLoading={actionLoading}
       />
@@ -618,10 +618,10 @@ export default function TopStudentsPage() {
           setShowRevokeModal(false);
           handleRevokeApproval();
         }}
-        title="Onayı Geri Al"
-        message="Bu listenin onayını geri almak istediğinizden emin misiniz?"
-        confirmText="Geri Al"
-        cancelText="İptal"
+        title="Approval Revocation"
+        message="Are you sure you want to revoke the approval of this list?"
+        confirmText="Revoke"
+        cancelText="Cancel"
         confirmButtonColor="red"
         isLoading={actionLoading}
       />
@@ -633,10 +633,10 @@ export default function TopStudentsPage() {
           setShowSendToRectorateModal(false);
           handleSendToRectorate();
         }}
-        title="Rektörlüğe Gönder"
-        message="Bu listeyi rektörlüğe göndermek istediğinizden emin misiniz? Bu işlem sonrası liste üzerinde değişiklik yapamazsınız."
-        confirmText="Gönder"
-        cancelText="İptal"
+        title="Send to Rectorate"
+        message="Are you sure you want to send this list to rectorate? This action cannot be reversed."
+        confirmText="Send"
+        cancelText="Cancel"
         confirmButtonColor="blue"
         isLoading={actionLoading}
       />
