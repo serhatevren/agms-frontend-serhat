@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['localhost', 'agolu-agms-backend.onrender.com', 'iztech-agms.vercel.app'],
+    domains: ['localhost', 'agolu-agms-backend.onrender.com'],
   },
 };
 
