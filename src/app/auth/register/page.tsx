@@ -11,11 +11,33 @@ import { AuthState } from "@/store/auth";
 import { useState } from "react";
 
 const registerSchema = z.object({
-  email: z.string().email("Geçerli bir email adresi giriniz"),
-  password: z.string().min(6, "Şifre en az 6 karakter olmalıdır"),
-  name: z.string().min(2, "İsim en az 2 karakter olmalıdır"),
-  surname: z.string().min(2, "Soyisim en az 2 karakter olmalıdır"),
-  phoneNumber: z.string().optional(),
+  email: z
+    .string()
+    .email("Geçerli bir email adresi giriniz")
+    .refine(
+      (email) => email.endsWith("@std.iyte.edu.tr") || email.endsWith("@iyte.edu.tr"),
+      "Email adresi @std.iyte.edu.tr veya @iyte.edu.tr ile bitmelidir"
+    ),
+  password: z
+    .string()
+    .min(6, "Şifre en az 6 karakter olmalıdır")
+    .regex(/[A-Z]/, "Şifre en az bir büyük harf içermelidir")
+    .regex(/[a-z]/, "Şifre en az bir küçük harf içermelidir")
+    .regex(/[0-9]/, "Şifre en az bir rakam içermelidir")
+    .regex(/[^a-zA-Z0-9]/, "Şifre en az bir özel karakter içermelidir"),
+  name: z
+    .string()
+    .min(2, "İsim en az 2 karakter olmalıdır")
+    .refine((val) => val.trim().length > 0, "Ad alanı boş bırakılamaz"),
+  surname: z
+    .string()
+    .min(2, "Soyisim en az 2 karakter olmalıdır")
+    .refine((val) => val.trim().length > 0, "Soyad alanı boş bırakılamaz"),
+  phoneNumber: z
+    .string()
+    .regex(/^[0-9]{10}$/, "Telefon numarası 10 haneli olmalıdır (Örnek: 5551234567)")
+    .optional()
+    .or(z.literal("")),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
