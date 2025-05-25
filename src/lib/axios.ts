@@ -4,7 +4,9 @@ import axios, {
   AxiosResponse,
 } from "axios";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5278/api";
+const baseURL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://aoglu-agms-backend.onrender.com/api";
 
 export const axiosInstance = axios.create({
   baseURL,

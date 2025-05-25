@@ -30,13 +30,21 @@ export interface AccessToken {
 }
 
 export interface BackendAuthResponse {
-  token: string;
-  refreshToken?: string;
+  accessToken?: {
+    token: string;
+    expirationDate: string;
+  };
+  refreshToken?: {
+    token: string;
+    expirationDate: string;
+  };
+  token?: string; // Register için
   userTypeValue?: number;
   userType?: number;
   staffRoleValue?: number;
   staffRole?: number;
   expirationDate?: string;
+  requiredAuthenticatorType?: any;
 }
 
 // This is what we use in our frontend

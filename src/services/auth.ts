@@ -92,6 +92,7 @@ export const authService = {
 
     console.log("Backend Response:", response.data);
 
+    // NArchitecture formatında accessToken objesi geliyor
     if (!response.data?.accessToken?.token) {
       throw new Error("Invalid response format from server");
     }
@@ -132,29 +133,29 @@ export const authService = {
 
       // Backend'den gelen token'ı direkt olarak kullan
       const token = response.data?.token;
-      
+
       if (!token) {
         console.error("Invalid response format:", response.data);
         throw new Error("Invalid response format from server");
       }
 
       // Backend'den gelen userType ve staffRole değerlerini al
-      const userType = response.data.userTypeValue || response.data.userType || 0;
+      const userType =
+        response.data.userTypeValue || response.data.userType || 0;
       const staffRole = response.data.staffRoleValue || response.data.staffRole;
-      
+
       console.log("Token:", token);
       console.log("UserType:", userType);
       console.log("StaffRole:", staffRole);
-      
-      const user = getUserFromToken(
-        token,
-        userType,
-        staffRole
-      );
+
+      const user = getUserFromToken(token, userType, staffRole);
 
       const authResponse: AuthResponse = {
         accessToken: token,
-        refreshToken: response.data?.refreshToken || "",
+        refreshToken:
+          typeof response.data?.refreshToken === "string"
+            ? response.data.refreshToken
+            : response.data?.refreshToken?.token || "",
         user,
       };
 
@@ -180,7 +181,7 @@ export const authService = {
       }
     );
 
-    if (!response.data?.accessToken?.token) {
+    if (!response.data?.token) {
       throw new Error("Invalid response format from server");
     }
 
@@ -189,15 +190,14 @@ export const authService = {
     console.log("Using UserType from response:", userType);
     console.log("Using StaffRole from response:", staffRole);
 
-    const user = getUserFromToken(
-      response.data.accessToken.token,
-      userType,
-      staffRole
-    );
+    const user = getUserFromToken(response.data.token, userType, staffRole);
 
     const authResponse: AuthResponse = {
-      accessToken: response.data.accessToken.token,
-      refreshToken: response.data.refreshToken?.token || "",
+      accessToken: response.data.token,
+      refreshToken:
+        typeof response.data.refreshToken === "string"
+          ? response.data.refreshToken
+          : response.data?.refreshToken?.token || "",
       user,
     };
 
