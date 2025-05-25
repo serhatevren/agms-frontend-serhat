@@ -58,7 +58,7 @@ function getMenuItems(user: any) {
         ];
       case 2: // Faculty Deans Office
         return [
-          { name: "Home", icon: <Home size={18} />, href: "/main" },
+          { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
           {
             name: "Graduation Approval",
             icon: <Award size={18} />,
@@ -68,7 +68,7 @@ function getMenuItems(user: any) {
         ];
       case 3: // Department Secretary
         return [
-          { name: "Home", icon: <Home size={18} />, href: "/main" },
+          { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
           {
             name: "Graduation Approval",
             icon: <Award size={18} />,
@@ -79,7 +79,7 @@ function getMenuItems(user: any) {
       default:
         // Other staff (library, sks, doitp, career, etc.)
         return [
-          { name: "Home", icon: <Home size={18} />, href: "/main" },
+          { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
           {
             name: "Severance Requests",
             icon: <FileText size={18} />,
@@ -92,7 +92,7 @@ function getMenuItems(user: any) {
   // Advisor
   if (user.userType === 2 || user.role === "advisor") {
     return [
-      { name: "Home", icon: <Home size={18} />, href: "/main" },
+      { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
       {
         name: "Graduation Approval",
         icon: <Award size={18} />,
@@ -105,7 +105,7 @@ function getMenuItems(user: any) {
   // Student
   if (user.userType === 0 || user.role === "student") {
     return [
-      { name: "Home", icon: <Home size={18} />, href: "/main" },
+      { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
       {
         name: "Severance Requests",
         icon: <FileText size={18} />,
@@ -122,7 +122,7 @@ function getMenuItems(user: any) {
   }
   // Default
   return [
-    { name: "Home", icon: <Home size={18} />, href: "/main" },
+    { name: "Home", icon: <Home size={18} />, href: "/dashboard" },
     { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
   ];
 }

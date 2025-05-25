@@ -59,15 +59,13 @@ export default function LoginPage() {
       setUser(response.user);
 
       console.log("User state updated, redirecting...");
-      router.push("/main");
+      router.push("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       if (error.response?.status === 500) {
         setError("Incorrect email or password");
       } else if (error.message === "Invalid response from server") {
-        setError(
-          "Invalid response from server. Please try again later."
-        );
+        setError("Invalid response from server. Please try again later.");
       } else {
         setError("An error occurred during login. Please try again.");
       }
