@@ -12,12 +12,12 @@ import { User } from "@/types/auth";
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Mevcut şifre gereklidir"),
-    newPassword: z.string().min(6, "Yeni şifre en az 6 karakter olmalıdır"),
-    confirmPassword: z.string().min(6, "Şifre onayı gereklidir"),
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Password confirmation is required"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Şifreler eşleşmiyor",
+    message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
@@ -26,46 +26,46 @@ type PasswordFormData = z.infer<typeof passwordSchema>;
 const getUserTypeText = (userType: number, staffRole?: number) => {
   switch (userType) {
     case 0:
-      return "Öğrenci";
+      return "Student";
     case 1:
       if (typeof staffRole === "number") {
         switch (staffRole) {
           case 0:
-            return "Rektörlük Personeli";
+            return "Rectorate Staff";
           case 1:
-            return "Öğrenci İşleri Personeli";
+            return "Student Affairs Staff";
           case 2:
-            return "Fakülte Dekan Ofisi Personeli";
+            return "Faculty Dean's Office Staff";
           case 3:
-            return "Bölüm Sekreteri";
+            return "Department Secretary";
           default:
-            return "Personel";
+            return "Staff";
         }
       }
-      return "Personel";
+      return "Staff";
     case 2:
-      return "Danışman";
+      return "Advisor";
     case 3:
-      return "Yönetici";
+      return "Administrator";
     default:
-      return "Kullanıcı";
+      return "User";
   }
 };
 
 const getDepartmentText = (userType: number, staffRole?: number) => {
   switch (userType) {
     case 0:
-      return "Bilgisayar Mühendisliği"; // Bu backend'den gelecek
+      return "Computer Engineering"; // This should come from backend
     case 1:
-      if (staffRole === 1) return "Öğrenci İşleri";
-      if (staffRole === 3) return "Bilgisayar Mühendisliği Bölümü";
-      return "Yönetim";
+      if (staffRole === 1) return "Student Affairs";
+      if (staffRole === 3) return "Computer Engineering Department";
+      return "Management";
     case 2:
-      return "Bilgisayar Mühendisliği"; // Bu backend'den gelecek
+      return "Computer Engineering"; // This should come from backend
     case 3:
-      return "Sistem Yönetimi";
+      return "System Administration";
     default:
-      return "Bilinmiyor";
+      return "Unknown";
   }
 };
 
@@ -120,15 +120,15 @@ export default function ProfilePage() {
         newPassword: data.newPassword,
       });
 
-      setSuccessMessage("Şifreniz başarıyla değiştirildi!");
+      setSuccessMessage("Your password has been changed successfully!");
       reset();
     } catch (error: any) {
       console.error("Password change error:", error);
       if (error.response?.status === 400) {
-        setErrorMessage("Mevcut şifre yanlış!");
+        setErrorMessage("Current password is incorrect!");
       } else {
         setErrorMessage(
-          "Şifre değiştirirken bir hata oluştu. Lütfen tekrar deneyin."
+          "An error occurred while changing the password. Please try again."
         );
       }
     } finally {
@@ -183,33 +183,31 @@ export default function ProfilePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Full Name
               </label>
               <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                <span className="text-gray-400 mr-3">👤</span>
                 <span className="text-gray-900">
                   {currentUser.name && currentUser.surname
                     ? `${currentUser.name} ${currentUser.surname}`.trim()
                     : currentUser.name ||
                       currentUser.surname ||
-                      "Bilgi bulunamadı"}
+                      "No information found"}
                 </span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Email
               </label>
               <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                <span className="text-gray-400 mr-3">📧</span>
                 <span className="text-gray-900">{currentUser.email}</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 {currentUser.userType === 0
                   ? "Department"
                   : currentUser.userType === 1
@@ -217,28 +215,25 @@ export default function ProfilePage() {
                   : "Department"}
               </label>
               <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                <span className="text-gray-400 mr-3">🏢</span>
                 <span className="text-gray-900">{departmentText}</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 User Type
               </label>
               <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                <span className="text-gray-400 mr-3">🎭</span>
                 <span className="text-gray-900">{userTypeText}</span>
               </div>
             </div>
 
             {currentUser.phoneNumber && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Phone Number
                 </label>
                 <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                  <span className="text-gray-400 mr-3">📱</span>
                   <span className="text-gray-900">
                     {currentUser.phoneNumber}
                   </span>
@@ -248,12 +243,11 @@ export default function ProfilePage() {
 
             {currentUser.userType === 0 && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Student Status
                 </label>
                 <div className="flex items-center p-3 bg-gray-50 rounded-md">
-                  <span className="text-gray-400 mr-3">📚</span>
-                  <span className="text-green-600 font-medium">Aktif</span>
+                  <span className="text-green-600 font-medium">Active</span>
                 </div>
               </div>
             )}
@@ -269,29 +263,31 @@ export default function ProfilePage() {
           <form onSubmit={handleSubmit(onPasswordSubmit)} className="space-y-4">
             {successMessage && (
               <div className="rounded-md bg-green-50 p-4 text-green-800 text-sm">
-                {successMessage}
+                Your password has been changed successfully!
               </div>
             )}
             {errorMessage && (
               <div className="rounded-md bg-red-50 p-4 text-red-800 text-sm">
-                {errorMessage}
+                {errorMessage === "Current password is incorrect!"
+                  ? "Current password is incorrect!"
+                  : errorMessage ===
+                    "An error occurred while changing the password. Please try again."
+                  ? "An error occurred while changing the password. Please try again."
+                  : errorMessage}
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Current Password
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">
-                    🔒
-                  </span>
                   <input
                     {...register("currentPassword")}
                     type="password"
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02]"
-                    placeholder="Mevcut şifrenizi girin"
+                    className="block w-full pl-4 pr-3 py-3 border border-gray-400 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] placeholder-gray-500 text-black"
+                    placeholder="Enter your current password"
                   />
                 </div>
                 {errors.currentPassword && (
@@ -302,18 +298,15 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   New Password
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">
-                    🔑
-                  </span>
                   <input
                     {...register("newPassword")}
                     type="password"
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02]"
-                    placeholder="Yeni şifrenizi girin"
+                    className="block w-full pl-4 pr-3 py-3 border border-gray-600 bg-gray-50 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] placeholder-gray-600 text-black"
+                    placeholder="Enter your new password"
                   />
                 </div>
                 {errors.newPassword && (
@@ -323,19 +316,16 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
                   Confirm New Password
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-3 text-gray-400">
-                    🔑
-                  </span>
                   <input
                     {...register("confirmPassword")}
                     type="password"
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02]"
-                    placeholder="Yeni şifrenizi tekrar girin"
+                    className="block w-full pl-4 pr-3 py-3 border border-gray-400 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] placeholder-gray-500 text-black"
+                    placeholder="Re-enter your new password"
                   />
                 </div>
                 {errors.confirmPassword && (
@@ -352,7 +342,7 @@ export default function ProfilePage() {
                 disabled={passwordLoading}
                 className="px-6 py-3 bg-[#7c0a02] text-white font-semibold rounded-md hover:bg-[#a50d0d] transition-colors duration-200 disabled:opacity-60"
               >
-                {passwordLoading ? "Şifre Değiştiriliyor..." : "Save Changes"}
+                {passwordLoading ? "Changing Password..." : "Save Changes"}
               </button>
             </div>
           </form>
