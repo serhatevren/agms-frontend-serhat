@@ -7,29 +7,29 @@ import { useEffect, useState } from "react";
 const getUserTypeText = (userType: number, staffRole?: number) => {
   switch (userType) {
     case 0:
-      return "öğrenci";
+      return "student";
     case 1:
       if (typeof staffRole === "number") {
         switch (staffRole) {
           case 0:
-            return "rektörlük personeli";
+            return "rectorate staff";
           case 1:
-            return "öğrenci işleri personeli";
+            return "student affairs staff";
           case 2:
-            return "fakülte dekan ofisi personeli";
+            return "faculty dean office staff";
           case 3:
-            return "bölüm sekreteri";
+            return "department secretary";
           default:
-            return "personel";
+            return "staff";
         }
       }
-      return "personel";
+      return "staff";
     case 2:
-      return "danışman";
+      return "advisor";
     case 3:
-      return "yönetici";
+      return "administrator";
     default:
-      return "kullanıcı";
+      return "user";
   }
 };
 
@@ -53,24 +53,21 @@ export default function DashboardPage() {
         {/* Hoşgeldiniz Kartı */}
         <div className="bg-white shadow rounded-lg p-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Hoşgeldiniz, {user.name} {user.surname}!
+            Welcome, {user.name} {user.surname}!
           </h1>
           <p className="text-gray-600 mb-4">
-            AGMS sistemine {userTypeText} olarak giriş yaptınız.
-          </p>
-          <p className="text-gray-600 mb-4">
-            İşlemleriniz için sol menüyü kullanabilirsiniz.
+            You have logged into the AGMS system as a {userTypeText}.
           </p>
           <div className="border-t border-gray-200 pt-4">
             <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-              <div>
+              <div className="bg-gray-50 p-4 rounded-lg">
                 <dt className="text-sm font-medium text-gray-500">Email</dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
               </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">Telefon</dt>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <dt className="text-sm font-medium text-gray-500">Phone</dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {user.phoneNumber || "Belirtilmemiş"}
+                  {user.phoneNumber || "Not specified"}
                 </dd>
               </div>
             </dl>
@@ -78,51 +75,47 @@ export default function DashboardPage() {
         </div>
 
         {/* Kullanıcı tipine göre özel içerik */}
-        <div className="mt-6">
+        <div className="mt-8 grid gap-6">
           {user.userType === 0 && (
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold text-blue-800 mb-2">
-                Öğrenci Paneli
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <h2 className="text-xl font-semibold text-blue-800 mb-3">
+                Student Panel
               </h2>
               <p className="text-blue-600">
-                Mezuniyet durumunuzu kontrol etmek için sol menüyü
-                kullanabilirsiniz.
+                You can use the left menu to check your graduation status.
               </p>
             </div>
           )}
 
           {user.userType === 1 && (
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold text-green-800 mb-2">
-                Akademik Personel Paneli
+            <div className="bg-gradient-to-r from-green-50 to-green-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <h2 className="text-xl font-semibold text-green-800 mb-3">
+                Academic Staff Panel
               </h2>
               <p className="text-green-600">
-                Öğrenci mezuniyet durumlarını incelemek ve yönetmek için sol
-                menüyü kullanabilirsiniz.
+                You can use the left menu to review and manage student graduation statuses.
               </p>
             </div>
           )}
 
           {user.userType === 2 && (
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold text-purple-800 mb-2">
-                Danışman Paneli
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <h2 className="text-xl font-semibold text-purple-800 mb-3">
+                Advisor Panel
               </h2>
               <p className="text-purple-600">
-                Danışmanı olduğunuz öğrencilerin başvurularını incelemek için
-                sol menüyü kullanabilirsiniz.
+                You can use the left menu to review applications of students you advise.
               </p>
             </div>
           )}
 
           {user.userType === 3 && (
-            <div className="bg-red-50 p-4 rounded-lg">
-              <h2 className="text-lg font-semibold text-red-800 mb-2">
-                Yönetici Paneli
+            <div className="bg-gradient-to-r from-red-50 to-red-100 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <h2 className="text-xl font-semibold text-red-800 mb-3">
+                Administrator Panel
               </h2>
               <p className="text-red-600">
-                Sistem ayarlarını yapılandırmak ve tüm başvuruları yönetmek için
-                sol menüyü kullanabilirsiniz.
+                You can use the left menu to configure system settings and manage all applications.
               </p>
             </div>
           )}
