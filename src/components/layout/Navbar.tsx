@@ -91,16 +91,16 @@ export default function Navbar({
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) {
-      return "Az önce";
+      return "Just now";
     } else if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} dakika önce`;
+      return `${minutes} minutes ago`;
     } else if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} saat önce`;
+      return `${hours} hours ago`;
     } else {
       const days = Math.floor(diffInSeconds / 86400);
-      return `${days} gün önce`;
+      return `${days} days ago`;
     }
   };
 
@@ -178,11 +178,13 @@ export default function Navbar({
     <>
       <nav className="flex items-center justify-between px-6 py-3 bg-white border-b shadow-sm sticky top-0 z-20 pl-[290px]">
         <div className="flex items-center gap-2">
-          <img
-            src="/iztech-logo.png"
-            alt="IZTECH Logo"
-            className="h-12 w-12 object-contain"
-          />
+          <Link href="/dashboard">
+            <img
+              src="/iztech-logo.png"
+              alt="IZTECH Logo"
+              className="h-12 w-12 object-contain cursor-pointer"
+            />
+          </Link>
           <Link
             href="/dashboard"
             className="font-extrabold text-2xl tracking-tight text-[#7c0a02]"
@@ -209,7 +211,7 @@ export default function Navbar({
               onClick={() => setNotificationOpen(!notificationOpen)}
               className="relative p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7c0a02]"
             >
-              <span className="sr-only">Bildirimleri görüntüle</span>
+              <span className="sr-only">View notifications</span>
               <svg
                 className="h-6 w-6"
                 fill="none"
@@ -235,11 +237,11 @@ export default function Navbar({
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                 <div className="p-4 border-b border-gray-200">
                   <h3 className="text-lg font-medium text-gray-900">
-                    Bildirimler
+                    Notifications
                   </h3>
                   {unreadCount > 0 && (
                     <p className="text-sm text-gray-500">
-                      {unreadCount} okunmamış bildirim
+                      {unreadCount} unread notifications
                     </p>
                   )}
                 </div>
@@ -260,10 +262,10 @@ export default function Navbar({
                         />
                       </svg>
                       <h3 className="mt-2 text-sm font-medium text-gray-900">
-                        Bildirim Yok
+                        No Notifications
                       </h3>
                       <p className="mt-1 text-sm text-gray-500">
-                        Şu anda hiç bildiriminiz bulunmamaktadır.
+                        You have no notifications at the moment.
                       </p>
                     </div>
                   ) : (
@@ -312,7 +314,7 @@ export default function Navbar({
                       }}
                       className="text-sm text-[#7c0a02] hover:text-[#a50d0d] font-medium"
                     >
-                      Tümünü okundu olarak işaretle
+                      Mark all as read
                     </button>
                   </div>
                 )}
@@ -353,7 +355,7 @@ export default function Navbar({
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   onClick={() => setMenuOpen(false)}
                 >
-                  Profil Ayarları
+                  Profile Settings
                 </Link>
                 <button
                   onClick={() => {
@@ -362,7 +364,7 @@ export default function Navbar({
                   }}
                   className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
                 >
-                  Çıkış Yap
+                  Logout
                 </button>
               </div>
             )}
