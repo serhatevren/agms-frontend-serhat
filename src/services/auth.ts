@@ -122,34 +122,54 @@ export const authService = {
   },
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await axiosInstance.post<BackendAuthResponse>(
-      "/auth/register",
-      data
-    );
+    try {
+      const response = await axiosInstance.post<BackendAuthResponse>(
+        "/auth/register",
+        data
+      );
 
-    if (!response.data?.accessToken?.token) {
-      throw new Error("Invalid response format from server");
+      console.log("Register Response:", response.data);
+
+      // Backend'den gelen token'ı direkt olarak kullan
+      const token = response.data?.token;
+      
+      if (!token) {
+        console.error("Invalid response format:", response.data);
+        throw new Error("Invalid response format from server");
+      }
+
+      // Backend'den gelen userType ve staffRole değerlerini al
+      const userType = response.data.userTypeValue || response.data.userType || 0;
+      const staffRole = response.data.staffRoleValue || response.data.staffRole;
+      
+      console.log("Token:", token);
+      console.log("UserType:", userType);
+      console.log("StaffRole:", staffRole);
+      
+      const user = getUserFromToken(
+        token,
+        userType,
+        staffRole
+      );
+
+      const authResponse: AuthResponse = {
+        accessToken: token,
+        refreshToken: response.data?.refreshToken || "",
+        user,
+      };
+
+      console.log("Auth Response:", authResponse);
+
+      if (!validateAuthResponse(authResponse)) {
+        console.error("Invalid auth response:", authResponse);
+        throw new Error("Invalid response format from server");
+      }
+
+      return authResponse;
+    } catch (error) {
+      console.error("Register error details:", error);
+      throw error;
     }
-
-    const userType = response.data.userTypeValue || response.data.userType || 0;
-    const staffRole = response.data.staffRoleValue || response.data.staffRole;
-    const user = getUserFromToken(
-      response.data.accessToken.token,
-      userType,
-      staffRole
-    );
-
-    const authResponse: AuthResponse = {
-      accessToken: response.data.accessToken.token,
-      refreshToken: response.data.refreshToken?.token || "",
-      user,
-    };
-
-    if (!validateAuthResponse(authResponse)) {
-      throw new Error("Invalid response format from server");
-    }
-
-    return authResponse;
   },
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {

@@ -6,6 +6,7 @@ import { axiosInstance } from "@/lib/axios";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { CheckCircle, XCircle } from "lucide-react";
 
 const BACKEND_URL = "/graduationprocesses";
 const ROLE_ENDPOINT_MAP: Record<string, string> = {
@@ -69,8 +70,8 @@ export default function GraduationApprovalPage() {
   // Toast bildirimi göster
   const showToast = (message: string, type: "success" | "error" = "error") => {
     const toastConfig = {
-      duration: type === "error" ? 5000 : 4000,
-      position: "top-right" as const,
+      duration: type === 'error' ? 1500 : 1500,
+      position: 'top-right' as const,
       style: {
         background: type === "error" ? "#EF4444" : "#10B981",
         color: "#fff",
@@ -654,14 +655,14 @@ export default function GraduationApprovalPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="mt-4 md:mt-0 flex gap-2">
+                  <div className="mt-4 md:mt-0 flex gap-3">
                     <button
                       onClick={() => handleApproval(s.id, true)}
                       disabled={s.graduationProcess?.advisorApproved === true}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 ${
                         s.graduationProcess?.advisorApproved === true
-                          ? "bg-green-100 text-green-800 cursor-not-allowed"
-                          : "bg-green-600 text-white hover:bg-green-700"
+                          ? "bg-green-100 text-green-800 cursor-not-allowed opacity-60"
+                          : "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
                       title={
                         s.graduationProcess?.advisorApproved === true
@@ -669,15 +670,16 @@ export default function GraduationApprovalPage() {
                           : "Öğrencinin mezuniyet başvurusunu onayla"
                       }
                     >
+                      <CheckCircle className="w-4 h-4" />
                       Onayla
                     </button>
                     <button
                       onClick={() => handleApproval(s.id, false)}
                       disabled={s.graduationProcess?.advisorApproved === false}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all duration-200 ${
                         s.graduationProcess?.advisorApproved === false
-                          ? "bg-red-100 text-red-800 cursor-not-allowed"
-                          : "bg-red-600 text-white hover:bg-red-700"
+                          ? "bg-red-100 text-red-800 cursor-not-allowed opacity-60"
+                          : "bg-red-600 text-white hover:bg-red-700 hover:shadow-lg transform hover:-translate-y-0.5"
                       }`}
                       title={
                         s.graduationProcess?.advisorApproved === false
@@ -685,6 +687,7 @@ export default function GraduationApprovalPage() {
                           : "Öğrencinin mezuniyet başvurusunu reddet"
                       }
                     >
+                      <XCircle className="w-4 h-4" />
                       Reddet
                     </button>
                   </div>

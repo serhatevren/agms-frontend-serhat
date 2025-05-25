@@ -9,6 +9,7 @@ import { authService } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
 import { AuthState } from "@/store/auth";
 import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 const registerSchema = z.object({
   email: z
@@ -59,15 +60,43 @@ export default function RegisterPage() {
     try {
       setError(null);
       const response = await authService.register(data);
-      localStorage.setItem("accessToken", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
-      setUser(response.user);
-      router.push("/dashboard");
+      
+      // Başarılı kayıt bildirimi göster
+      toast.success("Registration successful! Redirecting to login...", {
+        duration: 2000,
+        position: "top-right",
+        style: {
+          background: '#10B981',
+          color: '#fff',
+          padding: '16px',
+          borderRadius: '8px',
+        }
+      });
+
+      // Kısa bir gecikme ile login sayfasına yönlendir
+      setTimeout(() => {
+        router.push("/auth/login");
+      }, 2000);
+
     } catch (error: any) {
       console.error("Register error:", error);
+      toast.error(
+        error.response?.data?.message ||
+        "An error occurred during registration. Please try again.",
+        {
+          duration: 3000,
+          position: "top-right",
+          style: {
+            background: '#EF4444',
+            color: '#fff',
+            padding: '16px',
+            borderRadius: '8px',
+          }
+        }
+      );
       setError(
         error.response?.data?.message ||
-          "An error occurred during registration. Please try again."
+        "An error occurred during registration. Please try again."
       );
     }
   };
@@ -77,6 +106,7 @@ export default function RegisterPage() {
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative"
       style={{ backgroundImage: "url(/graduation-bg.jpg)" }}
     >
+      <Toaster />
       <div className="absolute inset-0 bg-black/80 z-0" />
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full">
         <div className="mx-auto w-full max-w-md bg-white/90 rounded-2xl shadow-2xl px-8 py-8 flex flex-col items-center">

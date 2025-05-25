@@ -30,19 +30,13 @@ export interface AccessToken {
 }
 
 export interface BackendAuthResponse {
-  accessToken: {
-    token: string;
-    expiration: Date;
-  };
-  refreshToken?: {
-    token: string;
-    expiration: Date;
-    userId: string;
-  };
-  userType: number;
-  userTypeValue: number;
-  staffRole?: number;
+  token: string;
+  refreshToken?: string;
+  userTypeValue?: number;
+  userType?: number;
   staffRoleValue?: number;
+  staffRole?: number;
+  expirationDate?: string;
 }
 
 // This is what we use in our frontend
