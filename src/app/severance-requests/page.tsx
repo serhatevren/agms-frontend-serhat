@@ -116,11 +116,11 @@ export default function SeveranceRequestsPage() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "pending":
-        return "Beklemede";
+        return "Pending";
       case "approved":
-        return "Onaylandı";
+        return "Approved";
       case "rejected":
-        return "Reddedildi";
+        return "Rejected";
       default:
         return status;
     }
