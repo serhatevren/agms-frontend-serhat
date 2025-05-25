@@ -87,11 +87,11 @@ export default function CeremonyPlanningPage() {
       await axiosInstance.put("/students/update-graduation-statuses");
 
       console.log("✅ Graduation statuses updated successfully");
-      alert("Öğrenci mezuniyet durumları başarıyla güncellendi!");
+      alert("Student graduation statuses have been successfully updated!");
     } catch (error) {
       console.error("❌ Error updating graduation statuses:", error);
       alert(
-        "Öğrenci durumları güncellenirken bir hata oluştu. Lütfen tekrar deneyin."
+        "An error occurred while updating student statuses. Please try again."
       );
     } finally {
       setUpdateStatusLoading(false);
@@ -164,7 +164,7 @@ export default function CeremonyPlanningPage() {
   };
 
   const handleDeleteCeremony = async (id: string) => {
-    if (!confirm("Bu mezuniyet törenini silmek istediğinizden emin misiniz?"))
+    if (!confirm("Are you sure you want to delete this graduation ceremony?"))
       return;
 
     try {
@@ -228,13 +228,13 @@ export default function CeremonyPlanningPage() {
   const getStatusText = (status: CeremonyStatus) => {
     switch (status) {
       case CeremonyStatus.Pending:
-        return "Beklemede";
+        return "Pending";
       case CeremonyStatus.Approved:
-        return "Onaylandı";
+        return "Approved";
       case CeremonyStatus.Rejected:
-        return "Reddedildi";
+        return "Rejected";
       default:
-        return "Bilinmiyor";
+        return "Unknown";
     }
   };
 
@@ -281,10 +281,10 @@ export default function CeremonyPlanningPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Mezuniyet Töreni Planlama
+                Graduation Ceremony Planning
               </h1>
               <p className="text-gray-600 mt-2">
-                Mezuniyet törenlerini planlayın ve yönetin
+                Plan and manage graduation ceremonies
               </p>
             </div>
             <div className="flex items-center space-x-3">
@@ -298,15 +298,15 @@ export default function CeremonyPlanningPage() {
                   className={updateStatusLoading ? "animate-spin" : ""}
                 />
                 {updateStatusLoading
-                  ? "Güncelleniyor..."
-                  : "Öğrenci Statülerini Güncelle"}
+                  ? "Updating..."
+                  : "Update Student Statuses"}
               </button>
               <button
                 onClick={() => openModal("create")}
                 className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors flex items-center gap-2"
               >
                 <Plus size={16} />
-                Yeni Tören Oluştur
+                Create New Ceremony
               </button>
             </div>
           </div>
@@ -322,7 +322,7 @@ export default function CeremonyPlanningPage() {
               />
               <input
                 type="text"
-                placeholder="Tören ara..."
+                placeholder="Search ceremony..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] text-gray-900 placeholder-gray-500"
@@ -340,22 +340,22 @@ export default function CeremonyPlanningPage() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] appearance-none text-gray-900"
               >
                 <option value="all" className="text-gray-900">
-                  Tüm Durumlar
+                  All Statuses
                 </option>
                 <option value="0" className="text-gray-900">
-                  Beklemede
+                  Pending
                 </option>
                 <option value="1" className="text-gray-900">
-                  Onaylandı
+                  Approved
                 </option>
                 <option value="2" className="text-gray-900">
-                  Reddedildi
+                  Rejected
                 </option>
               </select>
             </div>
 
             <div className="text-sm text-gray-800 flex items-center font-medium">
-              Toplam {filteredCeremonies.length} tören bulundu
+              Total {filteredCeremonies.length} ceremonies found
             </div>
           </div>
         </div>
@@ -371,7 +371,7 @@ export default function CeremonyPlanningPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {ceremony.academicYear} Mezuniyet Töreni
+                      {ceremony.academicYear} Graduation Ceremony
                     </h3>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
@@ -387,7 +387,7 @@ export default function CeremonyPlanningPage() {
                   <div className="flex items-center text-sm text-gray-600">
                     <Calendar size={16} className="mr-2" />
                     {new Date(ceremony.ceremonyDate).toLocaleDateString(
-                      "tr-TR",
+                      "en-US",
                       {
                         year: "numeric",
                         month: "long",
@@ -405,7 +405,7 @@ export default function CeremonyPlanningPage() {
 
                   <div className="flex items-center text-sm text-gray-600">
                     <Users size={16} className="mr-2" />
-                    {ceremony.studentUsers.length} Mezun Öğrenci
+                    {ceremony.studentUsers.length} Graduate Students
                   </div>
                 </div>
 
@@ -417,21 +417,21 @@ export default function CeremonyPlanningPage() {
                   <button
                     onClick={() => openModal("view", ceremony)}
                     className="text-blue-600 hover:text-blue-800 p-1"
-                    title="Detayları Görüntüle"
+                    title="View Details"
                   >
                     <Eye size={16} />
                   </button>
                   <button
                     onClick={() => openModal("edit", ceremony)}
                     className="text-green-600 hover:text-green-800 p-1"
-                    title="Düzenle"
+                    title="Edit"
                   >
                     <Edit2 size={16} />
                   </button>
                   <button
                     onClick={() => handleDeleteCeremony(ceremony.id)}
                     className="text-red-600 hover:text-red-800 p-1"
-                    title="Sil"
+                    title="Delete"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -445,19 +445,19 @@ export default function CeremonyPlanningPage() {
           <div className="bg-white shadow rounded-lg p-12 text-center">
             <Calendar size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Tören Bulunamadı
+              No Ceremonies Found
             </h3>
             <p className="text-gray-500 mb-4">
               {searchTerm || statusFilter !== "all"
-                ? "Arama kriterlerinize uygun tören bulunamadı."
-                : "Henüz hiç mezuniyet töreni oluşturulmamış."}
+                ? "No ceremonies match your search criteria."
+                : "No graduation ceremonies have been created yet."}
             </p>
             {!searchTerm && statusFilter === "all" && (
               <button
                 onClick={() => openModal("create")}
                 className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors"
               >
-                İlk Töreninizi Oluşturun
+                Create Your First Ceremony
               </button>
             )}
           </div>
@@ -472,10 +472,10 @@ export default function CeremonyPlanningPage() {
                 disabled={currentPage === 0}
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
-                Önceki
+                Previous
               </button>
               <span className="px-3 py-1">
-                Sayfa {currentPage + 1} / {totalPages}
+                Page {currentPage + 1} / {totalPages}
               </span>
               <button
                 onClick={() =>
@@ -484,7 +484,7 @@ export default function CeremonyPlanningPage() {
                 disabled={currentPage === totalPages - 1}
                 className="px-3 py-1 border rounded disabled:opacity-50"
               >
-                Sonraki
+                Next
               </button>
             </div>
           </div>
@@ -497,17 +497,17 @@ export default function CeremonyPlanningPage() {
               <div className="p-6">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">
                   {modalMode === "create"
-                    ? "Yeni Mezuniyet Töreni Oluştur"
+                    ? "Create New Graduation Ceremony"
                     : modalMode === "edit"
-                    ? "Mezuniyet Törenini Düzenle"
-                    : "Mezuniyet Töreni Detayları"}
+                    ? "Edit Graduation Ceremony"
+                    : "View Graduation Ceremony"}
                 </h3>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">
-                        Akademik Yıl
+                        Academic Year
                       </label>
                       <input
                         type="text"
@@ -526,7 +526,7 @@ export default function CeremonyPlanningPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">
-                        Tören Tarihi
+                        Ceremony Date
                       </label>
                       <input
                         type="datetime-local"
@@ -545,7 +545,7 @@ export default function CeremonyPlanningPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-1">
-                      Tören Yeri
+                      Ceremony Location
                     </label>
                     <input
                       type="text"
@@ -558,13 +558,13 @@ export default function CeremonyPlanningPage() {
                       }
                       disabled={modalMode === "view"}
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] disabled:bg-gray-100 text-gray-900 placeholder-gray-500"
-                      placeholder="Konferans Salonu, Ana Kampüs"
+                      placeholder="Conference Room, Main Campus"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-1">
-                      Tören Açıklaması
+                      Ceremony Description
                     </label>
                     <textarea
                       value={formData.ceremonyDescription}
@@ -577,13 +577,13 @@ export default function CeremonyPlanningPage() {
                       disabled={modalMode === "view"}
                       rows={4}
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] disabled:bg-gray-100 text-gray-900 placeholder-gray-500"
-                      placeholder="Tören detayları ve özel notlar..."
+                      placeholder="Ceremony details and special notes..."
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-1">
-                      Durum
+                      Status
                     </label>
                     <select
                       value={formData.ceremonyStatus}
@@ -598,18 +598,16 @@ export default function CeremonyPlanningPage() {
                       disabled={modalMode === "view"}
                       className="w-full px-3 py-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] focus:border-[#7c0a02] disabled:bg-gray-100 text-gray-900"
                     >
-                      <option value={CeremonyStatus.Pending}>Beklemede</option>
-                      <option value={CeremonyStatus.Approved}>Onaylandı</option>
-                      <option value={CeremonyStatus.Rejected}>
-                        Reddedildi
-                      </option>
+                      <option value={CeremonyStatus.Pending}>Pending</option>
+                      <option value={CeremonyStatus.Approved}>Approved</option>
+                      <option value={CeremonyStatus.Rejected}>Rejected</option>
                     </select>
                   </div>
 
                   {modalMode === "view" && selectedCeremony && (
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">
-                        Mezun Öğrenciler ({selectedCeremony.studentUsers.length}
+                        Graduate Students ({selectedCeremony.studentUsers.length}
                         )
                       </label>
                       <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-md p-2 bg-gray-50">
@@ -624,7 +622,7 @@ export default function CeremonyPlanningPage() {
                           ))
                         ) : (
                           <div className="text-sm text-gray-600">
-                            Bu törene henüz öğrenci atanmamış
+                            No students have been assigned to this ceremony yet
                           </div>
                         )}
                       </div>
@@ -637,7 +635,7 @@ export default function CeremonyPlanningPage() {
                     onClick={() => setShowModal(false)}
                     className="px-4 py-2 text-sm font-semibold text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
                   >
-                    {modalMode === "view" ? "Kapat" : "İptal"}
+                    {modalMode === "view" ? "Close" : "Cancel"}
                   </button>
                   {modalMode !== "view" && (
                     <button
@@ -654,7 +652,7 @@ export default function CeremonyPlanningPage() {
                       }
                       className="px-4 py-2 text-sm font-semibold text-white bg-[#7c0a02] rounded-md hover:bg-[#a50d0d] disabled:opacity-50 transition-colors"
                     >
-                      {modalMode === "create" ? "Oluştur" : "Güncelle"}
+                      {modalMode === "create" ? "Create" : "Update"}
                     </button>
                   )}
                 </div>
