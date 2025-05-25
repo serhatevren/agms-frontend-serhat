@@ -16,7 +16,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-function LoginPage() {
+export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setUser = useAuthStore((state) => state.setUser);
@@ -160,7 +160,7 @@ function LoginPage() {
   );
 }
 
-export default function LoginPageWrapper() {
+export function LoginPageWrapper() {
   return (
     <Suspense>
       <LoginPage />
