@@ -291,7 +291,7 @@ export default function CeremonyPlanningPage() {
               <button
                 onClick={handleUpdateGraduationStatuses}
                 disabled={updateStatusLoading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-[#7c0a02] text-white font-semibold rounded-md hover:bg-[#a50d0d] transition-colors duration-200 disabled:opacity-60 flex items-center gap-2"
               >
                 <RefreshCw
                   size={16}
@@ -303,7 +303,7 @@ export default function CeremonyPlanningPage() {
               </button>
               <button
                 onClick={() => openModal("create")}
-                className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors flex items-center gap-2"
+                className="px-6 py-3 bg-[#7c0a02] text-white font-semibold rounded-md hover:bg-[#a50d0d] transition-colors duration-200 flex items-center gap-2"
               >
                 <Plus size={16} />
                 Create New Ceremony
@@ -325,7 +325,7 @@ export default function CeremonyPlanningPage() {
                 placeholder="Search ceremony..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] text-gray-900 placeholder-gray-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] text-gray-900 placeholder-gray-500 font-medium"
               />
             </div>
 
@@ -337,18 +337,18 @@ export default function CeremonyPlanningPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] appearance-none text-gray-900"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02] appearance-none text-gray-900 font-medium"
               >
-                <option value="all" className="text-gray-900">
+                <option value="all" className="text-gray-900 font-medium">
                   All Statuses
                 </option>
-                <option value="0" className="text-gray-900">
+                <option value="0" className="text-gray-900 font-medium">
                   Pending
                 </option>
-                <option value="1" className="text-gray-900">
+                <option value="1" className="text-gray-900 font-medium">
                   Approved
                 </option>
-                <option value="2" className="text-gray-900">
+                <option value="2" className="text-gray-900 font-medium">
                   Rejected
                 </option>
               </select>
