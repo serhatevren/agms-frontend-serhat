@@ -20,6 +20,8 @@ export interface User {
   isActive: boolean;
   userType: number; // 0: Student, 1: Staff, 2: Advisor, 3: Admin
   staffRole?: number; // 0: Rectorate, 1: StudentAffairs, 2: FacultyDeansOffice, 3: DepartmentSecretary
+  facultyId?: string; // Fakülteye özel eklenen alan
+  departmentId?: string; // Departman sekreteri için eklenen alan
 }
 
 export interface AccessToken {
