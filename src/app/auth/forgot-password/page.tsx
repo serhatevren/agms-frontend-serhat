@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
         type: "error",
         message:
           error.response?.data?.message ||
-          "An error occurred during the password reset process.",
+          "No account found with this email address.",
       });
     }
   };
@@ -51,17 +51,31 @@ export default function ForgotPasswordPage() {
   return (
     <div
       className="min-h-screen w-full flex items-center justify-center bg-cover bg-center relative"
-      style={{ backgroundImage: 'url(/graduation-bg.jpg)' }}
+      style={{ backgroundImage: "url(/graduation-bg.jpg)" }}
     >
       <div className="absolute inset-0 bg-black/80 z-0" />
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen w-full">
         <div className="mx-auto w-full max-w-md bg-white/90 rounded-2xl shadow-2xl px-8 py-10 flex flex-col items-center">
-          <img src="/iztech-logo.png" alt="Iztech Logo" className="w-24 h-24 mb-4 rounded-full bg-white p-2 shadow" />
-          <h1 className="text-2xl font-bold text-center text-[#7c0a02] mb-6">Forgot Password</h1>
-          <p className="text-center text-gray-700 mb-6">Enter your email address and we will send your new password.</p>
+          <img
+            src="/iztech-logo.png"
+            alt="Iztech Logo"
+            className="w-24 h-24 mb-4 rounded-full bg-white p-2 shadow"
+          />
+          <h1 className="text-2xl font-bold text-center text-[#7c0a02] mb-6">
+            Forgot Password
+          </h1>
+          <p className="text-center text-gray-700 mb-6">
+            Enter your email address and we will send your new password.
+          </p>
           <form className="w-full space-y-4" onSubmit={handleSubmit(onSubmit)}>
             {status.message && (
-              <div className={`rounded-md ${status.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"} p-4 text-center text-sm`}>
+              <div
+                className={`rounded-md ${
+                  status.type === "success"
+                    ? "bg-green-50 text-green-800"
+                    : "bg-red-50 text-red-800"
+                } p-4 text-center text-sm`}
+              >
                 {status.message}
               </div>
             )}
@@ -74,7 +88,9 @@ export default function ForgotPasswordPage() {
                 placeholder="Email"
               />
               {errors.email && (
-                <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-red-600">
+                  {errors.email.message}
+                </p>
               )}
             </div>
             <button
@@ -85,7 +101,12 @@ export default function ForgotPasswordPage() {
               {isSubmitting ? "Sending..." : "Send Reset Link"}
             </button>
             <div className="text-center mt-2">
-              <Link href="/auth/login" className="text-xs text-[#7c0a02] hover:underline">Back to login</Link>
+              <Link
+                href="/auth/login"
+                className="text-xs text-[#7c0a02] hover:underline"
+              >
+                Back to login
+              </Link>
             </div>
           </form>
         </div>
