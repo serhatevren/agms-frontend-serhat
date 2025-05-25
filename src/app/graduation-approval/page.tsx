@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import { axiosInstance } from "@/lib/axios";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import Image from "next/image";
+import toast, { Toaster } from 'react-hot-toast';
+import { useRouter } from "next/navigation";
 
 const BACKEND_URL = "/graduationprocesses";
 const ROLE_ENDPOINT_MAP: Record<string, string> = {
@@ -63,197 +64,319 @@ export default function GraduationApprovalPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const step = getApprovalStep(user);
+  const router = useRouter();
 
-  async function fetchAdvisorStudents() {
-    setLoading(true);
-    setError(null);
-    try {
-      if (!user) return;
-      const studentsRes = await axiosInstance.get(
-        `/advisors/${user.id}/students`
-      );
-      console.log("studentsRes.data:", studentsRes.data);
-      console.log("studentsRes.data.items:", studentsRes.data.items);
-      setStudents(studentsRes.data.items || studentsRes.data);
-    } catch (e: any) {
-      setError("Öğrenciler alınamadı.");
+  // Toast bildirimi göster
+  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+    const toastConfig = {
+      duration: type === 'error' ? 5000 : 4000,
+      position: 'top-right' as const,
+      style: {
+        background: type === 'error' ? '#EF4444' : '#10B981',
+        color: '#fff',
+        padding: '16px',
+        borderRadius: '8px',
+      },
+    };
+
+    if (type === 'error') {
+      toast.error(message, toastConfig);
+    } else {
+      toast.success(message, toastConfig);
     }
-    setLoading(false);
-  }
+  };
 
-  async function fetchDepartmentSecretaryStudents() {
-    setLoading(true);
-    setError(null);
+  // Hata durumunu yönet
+  const handleError = (error: any, defaultMessage: string) => {
+    const errorMessage = error.response?.data?.message || defaultMessage;
+    setError(errorMessage);
+    showToast(errorMessage);
+  };
+
+  // Öğrenci listesini getir
+  const fetchStudents = async (endpoint: string, params = {}) => {
     try {
-      if (!user) return;
-
-      // First, get staff information using user.id
-      console.log("Fetching staff info for user ID:", user.id);
-      const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
-      console.log("Staff response:", staffRes.data);
-
-      const departmentId = staffRes.data.departmentId;
-      if (!departmentId) {
-        setError("Department ID not found for this staff member");
-        setLoading(false);
-        return;
-      }
-
-      // Then fetch students using the department ID with pagination
-      console.log("Fetching students for department ID:", departmentId);
-      const studentsRes = await axiosInstance.get(
-        `/students/by-department/${departmentId}`,
-        {
-          params: {
-            pageIndex: 0,
-            pageSize: 50,
-          },
-        }
-      );
-      console.log("Students response:", studentsRes.data);
-
-      // Check if we have items in the response
-      if (
-        !studentsRes.data ||
-        (!Array.isArray(studentsRes.data.items) &&
-          !Array.isArray(studentsRes.data))
-      ) {
-        console.error("Unexpected response format:", studentsRes.data);
-        setError("Invalid response format from server");
-        setLoading(false);
-        return;
-      }
-
-      const studentsData = Array.isArray(studentsRes.data)
-        ? studentsRes.data
-        : studentsRes.data.items || [];
-      console.log("Setting students state with:", studentsData);
-      setStudents(studentsData);
-    } catch (e: any) {
-      console.error("Error in fetchDepartmentSecretaryStudents:", e);
-      setError(
-        e.response?.data?.message || "Failed to fetch department students"
-      );
+      const res = await axiosInstance.get(endpoint, { params });
+      return res.data.items || res.data;
+    } catch (error: any) {
+      throw error;
     }
-    setLoading(false);
-  }
+  };
 
-  async function fetchFacultyDeansStudents() {
+  // Advisor öğrencilerini getir
+  const fetchAdvisorStudents = async () => {
     setLoading(true);
     setError(null);
     try {
-      if (!user) return;
-
-      // First, get staff information using user.id to get facultyId
-      console.log("Fetching staff info for faculty dean, user ID:", user.id);
-      const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
-      console.log("Faculty dean staff response:", staffRes.data);
-
-      const facultyId = staffRes.data.facultyId;
-      if (!facultyId) {
-        setError("Faculty ID not found for this staff member");
-        setLoading(false);
-        return;
+      if (!user?.id) {
+        throw new Error("Kullanıcı bilgisi bulunamadı.");
       }
 
-      // Then fetch all students from this faculty's departments
-      console.log("Fetching students for faculty ID:", facultyId);
-      const studentsRes = await axiosInstance.get(
-        `/students/by-faculty/${facultyId}`,
-        {
-          params: {
-            pageIndex: 0,
-            pageSize: 50,
-          },
-        }
+      // Önce advisor'ın öğrencilerini al
+      const studentsRes = await axiosInstance.get(`/advisors/${user.id}/students`);
+      const studentsData = studentsRes.data.items || studentsRes.data;
+
+      // Her öğrenci için graduation process bilgisini al
+      const studentsWithGraduationProcess = await Promise.all(
+        studentsData.map(async (student: any) => {
+          try {
+            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            return {
+              ...student,
+              graduationProcess: graduationProcessRes.data
+            };
+          } catch (error) {
+            // Eğer graduation process bulunamazsa, varsayılan değerlerle devam et
+            return {
+              ...student,
+              graduationProcess: {
+                advisorApproved: false,
+                departmentSecretaryApproved: false,
+                facultyDeansOfficeApproved: false,
+                studentAffairsApproved: false
+              }
+            };
+          }
+        })
       );
-      console.log("Faculty students response:", studentsRes.data);
 
-      // Check if we have items in the response
-      if (
-        !studentsRes.data ||
-        (!Array.isArray(studentsRes.data.items) &&
-          !Array.isArray(studentsRes.data))
-      ) {
-        console.error(
-          "Unexpected faculty students response format:",
-          studentsRes.data
-        );
-        setError("Invalid response format from server");
-        setLoading(false);
-        return;
-      }
-
-      const studentsData = Array.isArray(studentsRes.data)
-        ? studentsRes.data
-        : studentsRes.data.items || [];
-      console.log("Setting faculty students state with:", studentsData);
-      setStudents(studentsData);
-    } catch (e: any) {
-      console.error("Error in fetchFacultyDeansStudents:", e);
-      setError(e.response?.data?.message || "Failed to fetch faculty students");
-    }
-    setLoading(false);
-  }
-
-  async function fetchStudentAffairsStudents() {
-    setLoading(true);
-    setError(null);
-    try {
-      console.log("fetchStudentAffairsStudents axiosInstance.get öncesi");
-      const res = await axiosInstance.get("/Students/all");
-      console.log("fetchStudentAffairsStudents axiosInstance.get sonrası", res);
-      console.log("res.data:", res.data);
-      console.log("res.data.items:", res.data.items);
-      setStudents(res.data.items || res.data);
-    } catch (e) {
-      console.error("fetchStudentAffairsStudents axiosInstance.get HATASI:", e);
-      setError("Tüm öğrenciler alınamadı.");
+      setStudents(studentsWithGraduationProcess);
+    } catch (error: any) {
+      console.error('fetchAdvisorStudents hata detayları:', {
+        error: error,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      handleError(error, "Öğrenci listesi alınamadı.");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  async function handleApproval(studentId: string, isApproved: boolean) {
+  // Department Secretary öğrencilerini getir
+  const fetchDepartmentSecretaryStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!user?.id) {
+        throw new Error("Kullanıcı bilgisi bulunamadı.");
+      }
+
+      const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
+      const departmentId = staffRes.data.departmentId;
+      
+      if (!departmentId) {
+        throw new Error("Bölüm bilgisi bulunamadı.");
+      }
+
+      const studentsData = await fetchStudents(`/students/by-department/${departmentId}`, {
+        pageIndex: 0,
+        pageSize: 50,
+      });
+
+      // Her öğrenci için graduation process bilgisini al
+      const studentsWithGraduationProcess = await Promise.all(
+        studentsData.map(async (student: any) => {
+          try {
+            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            return {
+              ...student,
+              graduationProcess: graduationProcessRes.data
+            };
+          } catch (error) {
+            return {
+              ...student,
+              graduationProcess: {
+                advisorApproved: false,
+                departmentSecretaryApproved: false,
+                facultyDeansOfficeApproved: false,
+                studentAffairsApproved: false
+              }
+            };
+          }
+        })
+      );
+
+      setStudents(studentsWithGraduationProcess);
+    } catch (error: any) {
+      handleError(error, "Bölüm öğrencileri alınamadı.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Faculty Dean öğrencilerini getir
+  const fetchFacultyDeansStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!user?.id) {
+        throw new Error("Kullanıcı bilgisi bulunamadı.");
+      }
+
+      const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
+      const facultyId = staffRes.data.facultyId;
+      
+      if (!facultyId) {
+        throw new Error("Fakülte bilgisi bulunamadı.");
+      }
+
+      const studentsData = await fetchStudents(`/students/by-faculty/${facultyId}`, {
+        pageIndex: 0,
+        pageSize: 50,
+      });
+
+      // Her öğrenci için graduation process bilgisini al
+      const studentsWithGraduationProcess = await Promise.all(
+        studentsData.map(async (student: any) => {
+          try {
+            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            return {
+              ...student,
+              graduationProcess: graduationProcessRes.data
+            };
+          } catch (error) {
+            return {
+              ...student,
+              graduationProcess: {
+                advisorApproved: false,
+                departmentSecretaryApproved: false,
+                facultyDeansOfficeApproved: false,
+                studentAffairsApproved: false
+              }
+            };
+          }
+        })
+      );
+
+      setStudents(studentsWithGraduationProcess);
+    } catch (error: any) {
+      handleError(error, "Fakülte öğrencileri alınamadı.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Student Affairs öğrencilerini getir
+  const fetchStudentAffairsStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const studentsData = await fetchStudents("/Students/all");
+
+      // Her öğrenci için graduation process bilgisini al
+      const studentsWithGraduationProcess = await Promise.all(
+        studentsData.map(async (student: any) => {
+          try {
+            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            return {
+              ...student,
+              graduationProcess: graduationProcessRes.data
+            };
+          } catch (error) {
+            return {
+              ...student,
+              graduationProcess: {
+                advisorApproved: false,
+                departmentSecretaryApproved: false,
+                facultyDeansOfficeApproved: false,
+                studentAffairsApproved: false
+              }
+            };
+          }
+        })
+      );
+
+      setStudents(studentsWithGraduationProcess);
+    } catch (error: any) {
+      handleError(error, "Öğrenci listesi alınamadı.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Onay işlemini gerçekleştir
+  const handleApproval = async (studentId: string, isApproved: boolean) => {
     try {
       setLoading(true);
-      await axiosInstance.post(`${BACKEND_URL}/approve-by-advisor`, {
-        studentId,
-        isApproved,
-      });
-      // Refresh the student list after approval
-      if (step === "advisor") {
-        fetchAdvisorStudents();
+      console.log('handleApproval başladı:', { studentId, isApproved });
+      
+      if (!user?.id) {
+        throw new Error("Kullanıcı bilgisi bulunamadı.");
       }
-    } catch (e: any) {
-      setError(e.response?.data?.message || "Onay işlemi başarısız oldu");
+
+      // Önce öğrencinin graduation process'ini al
+      console.log('Graduation process isteği yapılıyor:', `/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessResponse = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      console.log('Graduation process yanıtı:', graduationProcessResponse.data);
+      
+      const graduationProcessId = graduationProcessResponse.data.id;
+      console.log('Alınan graduation process ID:', graduationProcessId);
+
+      if (!graduationProcessId) {
+        throw new Error("Öğrencinin mezuniyet süreci bulunamadı.");
+      }
+
+      // Graduation process'i onayla veya reddet
+      const approvalUrl = `/graduationprocesses/approve-by-advisor?graduationProcessId=${graduationProcessId}&isApproved=${isApproved}`;
+      console.log('Onay isteği yapılıyor:', approvalUrl);
+      
+      const approvalResponse = await axiosInstance.post(approvalUrl);
+      console.log('Onay yanıtı:', approvalResponse.data);
+
+      const message = isApproved 
+        ? "Öğrenci mezuniyeti başarıyla onaylandı" 
+        : "Öğrenci mezuniyeti reddedildi";
+      
+      showToast(message, 'success');
+      console.log('Liste yenileniyor...');
+      await fetchAdvisorStudents(); // Listeyi yenile
+      console.log('Liste yenilendi');
+    } catch (error: any) {
+      console.error('Approval error detayları:', {
+        error: error,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data,
+        config: error.config
+      });
+
+      if (error.response?.status === 404) {
+        handleError(error, "Öğrencinin mezuniyet süreci bulunamadı.");
+      } else if (error.response?.status === 403) {
+        handleError(error, "Bu işlem için yetkiniz bulunmuyor.");
+      } else {
+        handleError(error, `İşlem başarısız oldu: ${error.message}`);
+      }
     } finally {
       setLoading(false);
+      console.log('handleApproval tamamlandı');
     }
-  }
+  };
+
+  // Öğrenci listesini filtrele
+  const filteredStudents = students?.filter((s: any) => {
+    const fullName = `${s.name ?? ""} ${s.surname ?? ""}`.toLowerCase();
+    return fullName.includes(search.toLowerCase());
+  });
 
   useEffect(() => {
-    async function fetchProcesses() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await axiosInstance.get(BACKEND_URL);
-        setProcesses(res.data.items || res.data);
-      } catch (e: any) {
-        setError("Başvurular alınamadı.");
-      }
-      setLoading(false);
+    if (!user) {
+      handleError(new Error("Kullanıcı bilgisi bulunamadı."), "Kullanıcı bilgisi bulunamadı.");
+      return;
     }
-    if (step === "advisor") {
-      fetchAdvisorStudents();
-    } else if (step === "departmentSecretary") {
-      fetchDepartmentSecretaryStudents();
-    } else if (step === "facultyDeansOffice") {
-      fetchFacultyDeansStudents();
-    } else if (step === "studentAffairs") {
-      fetchStudentAffairsStudents();
-    } else {
-      fetchProcesses();
+
+    const fetchHandlers = {
+      advisor: fetchAdvisorStudents,
+      departmentSecretary: fetchDepartmentSecretaryStudents,
+      facultyDeansOffice: fetchFacultyDeansStudents,
+      studentAffairs: fetchStudentAffairsStudents,
+    };
+
+    const handler = fetchHandlers[step as keyof typeof fetchHandlers];
+    if (handler) {
+      handler();
     }
   }, [step, user]);
 
@@ -279,10 +402,6 @@ export default function GraduationApprovalPage() {
   }
 
   // Arama filtreleme
-  const filteredStudents = students?.filter((s: any) => {
-    const fullName = `${s.name ?? ""} ${s.surname ?? ""}`.toLowerCase();
-    return fullName.includes(search.toLowerCase());
-  });
   const filteredProcesses = processes.filter(
     (p) =>
       p.studentUser &&
@@ -292,67 +411,114 @@ export default function GraduationApprovalPage() {
   );
 
   // Add these approval handler functions at component level
-  async function handleDepartmentSecretaryApproval(
-    studentId: string,
-    isApproved: boolean
-  ) {
+  async function handleDepartmentSecretaryApproval(studentId: string, isApproved: boolean) {
     try {
       setLoading(true);
-      await axiosInstance.post(
-        `${BACKEND_URL}/approve-by-department-secretary`,
-        {
-          studentId,
-          isApproved,
-        }
-      );
-      if (step === "departmentSecretary") {
-        fetchDepartmentSecretaryStudents();
+      
+      // Önce graduation process'i al
+      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessId = graduationProcessRes.data.id;
+
+      if (!graduationProcessId) {
+        throw new Error("Öğrencinin mezuniyet süreci bulunamadı.");
       }
-    } catch (e: any) {
-      setError(e.response?.data?.message || "Onay işlemi başarısız oldu");
+
+      // Onay/red işlemini gerçekleştir
+      await axiosInstance.post(
+        `/graduationprocesses/approve-by-department-secretary?graduationProcessId=${graduationProcessId}&isApproved=${isApproved}`
+      );
+
+      showToast(
+        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
+        'success'
+      );
+
+      // Listeyi güncelle
+      await fetchDepartmentSecretaryStudents();
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        handleError(error, "Öğrencinin mezuniyet süreci bulunamadı.");
+      } else if (error.response?.status === 403) {
+        handleError(error, "Bu işlem için yetkiniz bulunmuyor.");
+      } else {
+        handleError(error, "İşlem başarısız oldu.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleFacultyDeansApproval(
-    studentId: string,
-    isApproved: boolean
-  ) {
+  // Faculty Deans Office onay işlemi fonksiyonunu güncelle
+  async function handleFacultyDeansApproval(studentId: string, isApproved: boolean) {
     try {
       setLoading(true);
-      await axiosInstance.post(
-        `${BACKEND_URL}/approve-by-faculty-deans-office`,
-        {
-          studentId,
-          isApproved,
-        }
-      );
-      if (step === "facultyDeansOffice") {
-        fetchFacultyDeansStudents();
+      
+      // Önce graduation process'i al
+      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessId = graduationProcessRes.data.id;
+
+      if (!graduationProcessId) {
+        throw new Error("Öğrencinin mezuniyet süreci bulunamadı.");
       }
-    } catch (e: any) {
-      setError(e.response?.data?.message || "Onay işlemi başarısız oldu");
+
+      // Onay/red işlemini gerçekleştir
+      await axiosInstance.post(
+        `/graduationprocesses/approve-by-faculty-deans-office?graduationProcessId=${graduationProcessId}&isApproved=${isApproved}`
+      );
+
+      showToast(
+        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
+        'success'
+      );
+
+      // Listeyi güncelle
+      await fetchFacultyDeansStudents();
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        handleError(error, "Öğrencinin mezuniyet süreci bulunamadı.");
+      } else if (error.response?.status === 403) {
+        handleError(error, "Bu işlem için yetkiniz bulunmuyor.");
+      } else {
+        handleError(error, "İşlem başarısız oldu.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleStudentAffairsApproval(
-    studentId: string,
-    isApproved: boolean
-  ) {
+  // Student Affairs onay işlemi fonksiyonunu güncelle
+  async function handleStudentAffairsApproval(studentId: string, isApproved: boolean) {
     try {
       setLoading(true);
-      await axiosInstance.post(`${BACKEND_URL}/approve-by-student-affairs`, {
-        studentId,
-        isApproved,
-      });
-      if (step === "studentAffairs") {
-        fetchStudentAffairsStudents();
+      
+      // Önce graduation process'i al
+      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessId = graduationProcessRes.data.id;
+
+      if (!graduationProcessId) {
+        throw new Error("Öğrencinin mezuniyet süreci bulunamadı.");
       }
-    } catch (e: any) {
-      setError(e.response?.data?.message || "Onay işlemi başarısız oldu");
+
+      // Onay/red işlemini gerçekleştir
+      await axiosInstance.post(
+        `/graduationprocesses/approve-by-student-affairs?graduationProcessId=${graduationProcessId}&isApproved=${isApproved}`
+      );
+
+      showToast(
+        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
+        'success'
+      );
+
+      // Listeyi güncelle
+      await fetchStudentAffairsStudents();
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        handleError(error, "Öğrencinin mezuniyet süreci bulunamadı.");
+      } else if (error.response?.status === 403) {
+        handleError(error, "Bu işlem için yetkiniz bulunmuyor.");
+      } else {
+        handleError(error, "İşlem başarısız oldu.");
+      }
     } finally {
       setLoading(false);
     }
@@ -381,7 +547,13 @@ export default function GraduationApprovalPage() {
   if (step === "advisor") {
     return (
       <AuthenticatedLayout>
+        <Toaster />
         <div className="p-8 max-w-4xl mx-auto">
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
               Advisor's Graduation List
@@ -422,54 +594,50 @@ export default function GraduationApprovalPage() {
                     <div className="mt-2">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          s.graduationStatus === 0
-                            ? "bg-yellow-100 text-yellow-800"
-                            : s.graduationStatus === 1
-                            ? "bg-blue-100 text-blue-800"
-                            : s.graduationStatus === 2
+                          s.graduationProcess?.advisorApproved
                             ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                            : s.graduationProcess?.advisorApproved === false
+                            ? "bg-red-100 text-red-800"
+                            : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
-                        {s.graduationStatus === 0
-                          ? "Beklemede"
-                          : s.graduationStatus === 1
-                          ? "İşlemde"
-                          : s.graduationStatus === 2
+                        {s.graduationProcess?.advisorApproved
                           ? "Onaylandı"
-                          : "Reddedildi"}
+                          : s.graduationProcess?.advisorApproved === false
+                          ? "Reddedildi"
+                          : "Beklemede"}
                       </span>
                     </div>
                   </div>
                   <div className="mt-4 md:mt-0 flex gap-2">
                     <button
                       onClick={() => handleApproval(s.id, true)}
-                      disabled={s.graduationStatus !== 0}
+                      disabled={s.graduationProcess?.advisorApproved === true}
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 0
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        s.graduationProcess?.advisorApproved === true
+                          ? "bg-green-100 text-green-800 cursor-not-allowed"
+                          : "bg-green-600 text-white hover:bg-green-700"
                       }`}
                       title={
-                        s.graduationStatus !== 0
-                          ? "Bu öğrencinin mezuniyet durumu zaten işlemde veya sonuçlandı"
-                          : ""
+                        s.graduationProcess?.advisorApproved === true
+                          ? "Bu öğrenci zaten onaylanmış"
+                          : "Öğrencinin mezuniyet başvurusunu onayla"
                       }
                     >
                       Onayla
                     </button>
                     <button
                       onClick={() => handleApproval(s.id, false)}
-                      disabled={s.graduationStatus !== 0}
+                      disabled={s.graduationProcess?.advisorApproved === false}
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 0
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        s.graduationProcess?.advisorApproved === false
+                          ? "bg-red-100 text-red-800 cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
                       }`}
                       title={
-                        s.graduationStatus !== 0
-                          ? "Bu öğrencinin mezuniyet durumu zaten işlemde veya sonuçlandı"
-                          : ""
+                        s.graduationProcess?.advisorApproved === false
+                          ? "Bu öğrenci zaten reddedilmiş"
+                          : "Öğrencinin mezuniyet başvurusunu reddet"
                       }
                     >
                       Reddet
@@ -488,6 +656,7 @@ export default function GraduationApprovalPage() {
   if (step === "departmentSecretary") {
     return (
       <AuthenticatedLayout>
+        <Toaster />
         <div className="p-8 max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
@@ -516,37 +685,10 @@ export default function GraduationApprovalPage() {
                         {s.name} {s.surname}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Bölüm:{" "}
-                        <span className="text-gray-800">
-                          {s.departmentName || "-"}
-                        </span>
+                        Bölüm: <span className="text-gray-800">{s.departmentName || "-"}</span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        Öğrenci No:{" "}
-                        <span className="text-gray-800">
-                          {s.studentNumber || "-"}
-                        </span>
-                      </div>
-                      <div className="mt-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            s.graduationStatus === 0
-                              ? "bg-yellow-100 text-yellow-800"
-                              : s.graduationStatus === 1
-                              ? "bg-blue-100 text-blue-800"
-                              : s.graduationStatus === 2
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {s.graduationStatus === 0
-                            ? "Beklemede"
-                            : s.graduationStatus === 1
-                            ? "İşlemde"
-                            : s.graduationStatus === 2
-                            ? "Onaylandı"
-                            : "Reddedildi"}
-                        </span>
+                        Öğrenci No: <span className="text-gray-800">{s.studentNumber || "-"}</span>
                       </div>
                     </div>
                   </div>
@@ -556,82 +698,131 @@ export default function GraduationApprovalPage() {
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">
                       Onay Durumları
                     </h3>
-                    <div className="grid grid-cols-1 gap-4">
-                      {/* Advisor Approval Status */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      {/* Advisor Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
+                            s.graduationProcess?.advisorApproved
                               ? "bg-green-500"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            Danışman
+                            Danışman Onayı
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: s.graduationProcess?.advisorApproved
+                                ? "#059669"
+                                : s.graduationProcess?.advisorApproved === false
+                                ? "#DC2626"
+                                : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {s.graduationProcess?.advisorApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
+                              ? "Reddedildi"
+                              : "Beklemede"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Department Secretary Status */}
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div
+                          className={`w-3 h-3 rounded-full mr-3 ${
+                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "bg-gray-300"
+                              : s.graduationProcess?.departmentSecretaryApproved
+                              ? "bg-green-500"
+                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "bg-red-500"
+                              : "bg-yellow-500"
+                          }`}
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            Bölüm Sekreterliği
+                          </div>
+                          <div className="text-sm font-medium"
+                            style={{
+                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                                ? "#6B7280"
+                                : s.graduationProcess?.departmentSecretaryApproved
+                                ? "#059669"
+                                : s.graduationProcess?.departmentSecretaryApproved === false
+                                ? "#DC2626"
+                                : "#000000"
+                            }}
+                          >
+                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "Danışman Onayı Gerekiyor"
+                              : s.graduationProcess?.departmentSecretaryApproved
+                              ? "Onaylandı"
+                              : s.graduationProcess?.departmentSecretaryApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Approval Buttons */}
-                  <div className="mt-4 flex justify-end gap-2">
-                    <button
-                      onClick={() =>
-                        handleDepartmentSecretaryApproval(s.id, true)
-                      }
-                      disabled={s.graduationStatus !== 1}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      }`}
-                      title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin mezuniyet durumu henüz işleme hazır değil veya sonuçlandı"
-                          : ""
-                      }
-                    >
-                      Onayla
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleDepartmentSecretaryApproval(s.id, false)
-                      }
-                      disabled={s.graduationStatus !== 1}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      }`}
-                      title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin mezuniyet durumu henüz işleme hazır değil veya sonuçlandı"
-                          : ""
-                      }
-                    >
-                      Reddet
-                    </button>
+                    {/* Approval Buttons */}
+                    <div className="mt-4 flex justify-end gap-2">
+                      <button
+                        onClick={() => handleDepartmentSecretaryApproval(s.id, true)}
+                        disabled={
+                          !s.graduationProcess?.advisorApproved || 
+                          s.graduationProcess?.advisorApproved === false ||
+                          s.graduationProcess?.departmentSecretaryApproved === true
+                        }
+                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : s.graduationProcess?.departmentSecretaryApproved === true
+                            ? "bg-green-100 text-green-800 cursor-not-allowed"
+                            : "bg-green-600 text-white hover:bg-green-700"
+                        }`}
+                        title={
+                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            ? "Danışman onayı gerekiyor"
+                            : s.graduationProcess?.departmentSecretaryApproved === true
+                            ? "Bu öğrenci zaten onaylanmış"
+                            : "Öğrencinin mezuniyet başvurusunu onayla"
+                        }
+                      >
+                        Onayla
+                      </button>
+                      <button
+                        onClick={() => handleDepartmentSecretaryApproval(s.id, false)}
+                        disabled={
+                          !s.graduationProcess?.advisorApproved || 
+                          s.graduationProcess?.advisorApproved === false ||
+                          s.graduationProcess?.departmentSecretaryApproved === false
+                        }
+                        className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : s.graduationProcess?.departmentSecretaryApproved === false
+                            ? "bg-red-100 text-red-800 cursor-not-allowed"
+                            : "bg-red-600 text-white hover:bg-red-700"
+                        }`}
+                        title={
+                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            ? "Danışman onayı gerekiyor"
+                            : s.graduationProcess?.departmentSecretaryApproved === false
+                            ? "Bu öğrenci zaten reddedilmiş"
+                            : "Öğrencinin mezuniyet başvurusunu reddet"
+                        }
+                      >
+                        Reddet
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -646,6 +837,7 @@ export default function GraduationApprovalPage() {
   if (step === "studentAffairs") {
     return (
       <AuthenticatedLayout>
+        <Toaster />
         <div className="p-8 max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
@@ -674,37 +866,10 @@ export default function GraduationApprovalPage() {
                         {s.name} {s.surname}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Bölüm:{" "}
-                        <span className="text-gray-800">
-                          {s.departmentName || "-"}
-                        </span>
+                        Bölüm: <span className="text-gray-800">{s.departmentName || "-"}</span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        Öğrenci No:{" "}
-                        <span className="text-gray-800">
-                          {s.studentNumber || "-"}
-                        </span>
-                      </div>
-                      <div className="mt-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            s.graduationStatus === 0
-                              ? "bg-yellow-100 text-yellow-800"
-                              : s.graduationStatus === 1
-                              ? "bg-blue-100 text-blue-800"
-                              : s.graduationStatus === 2
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {s.graduationStatus === 0
-                            ? "Beklemede"
-                            : s.graduationStatus === 1
-                            ? "İşlemde"
-                            : s.graduationStatus === 2
-                            ? "Onaylandı"
-                            : "Reddedildi"}
-                        </span>
+                        Öğrenci No: <span className="text-gray-800">{s.studentNumber || "-"}</span>
                       </div>
                     </div>
                   </div>
@@ -714,52 +879,50 @@ export default function GraduationApprovalPage() {
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">
                       Onay Durumları
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Advisor Approval Status */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      {/* Advisor Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
+                            s.graduationProcess?.advisorApproved
                               ? "bg-green-500"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            Danışman
+                            Danışman Onayı
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: s.graduationProcess?.advisorApproved
+                                ? "#059669"
+                                : s.graduationProcess?.advisorApproved === false
+                                ? "#DC2626"
+                                : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {s.graduationProcess?.advisorApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
                         </div>
                       </div>
 
-                      {/* Department Secretary Approval Status */}
+                      {/* Department Secretary Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
-                              ? "bg-green-500"
-                              : s.graduationStatus === 3
-                              ? "bg-red-500"
-                              : s.graduationStatus < 1
+                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
                               ? "bg-gray-300"
+                              : s.graduationProcess?.departmentSecretaryApproved
+                              ? "bg-green-500"
+                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
                         />
@@ -767,38 +930,39 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Bölüm Sekreterliği
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                                ? "#6B7280"
+                                : s.graduationProcess?.departmentSecretaryApproved
+                                ? "#059669"
+                                : s.graduationProcess?.departmentSecretaryApproved === false
+                                ? "#DC2626"
+                                : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "Danışman Onayı Gerekiyor"
+                              : s.graduationProcess?.departmentSecretaryApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.departmentSecretaryApproved === false
                               ? "Reddedildi"
-                              : s.graduationStatus < 1
-                              ? "Danışman Onayı Bekleniyor"
                               : "Beklemede"}
                           </div>
                         </div>
                       </div>
 
-                      {/* Faculty Dean's Office Approval Status */}
+                      {/* Faculty Dean's Office Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
-                              ? "bg-green-500"
-                              : s.graduationStatus === 3
-                              ? "bg-red-500"
-                              : s.graduationStatus < 1
+                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
+                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
                               ? "bg-gray-300"
+                              : s.graduationProcess?.facultyDeansOfficeApproved
+                              ? "bg-green-500"
+                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
                         />
@@ -806,23 +970,73 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Fakülte Dekanlığı
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
+                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "#6B7280"
+                              : s.graduationProcess?.facultyDeansOfficeApproved
+                              ? "#059669"
+                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "#DC2626"
+                              : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "Danışman Onayı Gerekiyor"
+                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "Bölüm Sekreterliği Onayı Gerekiyor"
+                              : s.graduationProcess?.facultyDeansOfficeApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.facultyDeansOfficeApproved === false
                               ? "Reddedildi"
-                              : s.graduationStatus < 1
-                              ? "Önceki Onaylar Bekleniyor"
+                              : "Beklemede"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Student Affairs Status */}
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div
+                          className={`w-3 h-3 rounded-full mr-3 ${
+                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
+                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false ||
+                            !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "bg-gray-300"
+                              : s.graduationProcess?.studentAffairsApproved
+                              ? "bg-green-500"
+                              : s.graduationProcess?.studentAffairsApproved === false
+                              ? "bg-red-500"
+                              : "bg-yellow-500"
+                          }`}
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            Öğrenci İşleri
+                          </div>
+                          <div className="text-sm font-medium"
+                            style={{
+                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
+                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false ||
+                                    !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "#6B7280"
+                              : s.graduationProcess?.studentAffairsApproved
+                              ? "#059669"
+                              : s.graduationProcess?.studentAffairsApproved === false
+                              ? "#DC2626"
+                              : "#000000"
+                            }}
+                          >
+                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "Danışman Onayı Gerekiyor"
+                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "Bölüm Sekreterliği Onayı Gerekiyor"
+                              : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "Fakülte Dekanlığı Onayı Gerekiyor"
+                              : s.graduationProcess?.studentAffairsApproved
+                              ? "Onaylandı"
+                              : s.graduationProcess?.studentAffairsApproved === false
+                              ? "Reddedildi"
                               : "Beklemede"}
                           </div>
                         </div>
@@ -834,32 +1048,74 @@ export default function GraduationApprovalPage() {
                   <div className="mt-4 flex justify-end gap-2">
                     <button
                       onClick={() => handleStudentAffairsApproval(s.id, true)}
-                      disabled={s.graduationStatus !== 1}
+                      disabled={
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.facultyDeansOfficeApproved ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === false ||
+                        s.graduationProcess?.studentAffairsApproved === true
+                      }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.facultyDeansOfficeApproved ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : s.graduationProcess?.studentAffairsApproved === true
+                          ? "bg-green-100 text-green-800 cursor-not-allowed"
+                          : "bg-green-600 text-white hover:bg-green-700"
                       }`}
                       title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin tüm onayları tamamlanmadan işlem yapamazsınız"
-                          : ""
+                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          ? "Danışman onayı gerekiyor"
+                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "Bölüm sekreterliği onayı gerekiyor"
+                          : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "Fakülte dekanlığı onayı gerekiyor"
+                          : s.graduationProcess?.studentAffairsApproved === true
+                          ? "Bu öğrenci zaten onaylanmış"
+                          : "Öğrencinin mezuniyet başvurusunu onayla"
                       }
                     >
                       Onayla
                     </button>
                     <button
                       onClick={() => handleStudentAffairsApproval(s.id, false)}
-                      disabled={s.graduationStatus !== 1}
+                      disabled={
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.facultyDeansOfficeApproved ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === false ||
+                        s.graduationProcess?.studentAffairsApproved === false
+                      }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.facultyDeansOfficeApproved ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : s.graduationProcess?.studentAffairsApproved === false
+                          ? "bg-red-100 text-red-800 cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
                       }`}
                       title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin tüm onayları tamamlanmadan işlem yapamazsınız"
-                          : ""
+                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          ? "Danışman onayı gerekiyor"
+                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "Bölüm sekreterliği onayı gerekiyor"
+                          : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "Fakülte dekanlığı onayı gerekiyor"
+                          : s.graduationProcess?.studentAffairsApproved === false
+                          ? "Bu öğrenci zaten reddedilmiş"
+                          : "Öğrencinin mezuniyet başvurusunu reddet"
                       }
                     >
                       Reddet
@@ -878,6 +1134,7 @@ export default function GraduationApprovalPage() {
   if (step === "facultyDeansOffice") {
     return (
       <AuthenticatedLayout>
+        <Toaster />
         <div className="p-8 max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-8">
             <h1 className="text-3xl font-bold text-gray-900">
@@ -917,27 +1174,6 @@ export default function GraduationApprovalPage() {
                           {s.studentNumber || "-"}
                         </span>
                       </div>
-                      <div className="mt-2">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            s.graduationStatus === 0
-                              ? "bg-yellow-100 text-yellow-800"
-                              : s.graduationStatus === 1
-                              ? "bg-blue-100 text-blue-800"
-                              : s.graduationStatus === 2
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {s.graduationStatus === 0
-                            ? "Beklemede"
-                            : s.graduationStatus === 1
-                            ? "İşlemde"
-                            : s.graduationStatus === 2
-                            ? "Onaylandı"
-                            : "Reddedildi"}
-                        </span>
-                      </div>
                     </div>
                   </div>
 
@@ -946,52 +1182,48 @@ export default function GraduationApprovalPage() {
                     <h3 className="text-sm font-semibold text-gray-900 mb-3">
                       Onay Durumları
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       {/* Advisor Approval Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
+                            s.graduationProcess?.advisorApproved
                               ? "bg-green-500"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
                         />
                         <div>
                           <div className="text-sm font-medium text-gray-900">
-                            Danışman
+                            Danışman Onayı
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: s.graduationProcess?.advisorApproved
+                                ? "#059669"
+                                : s.graduationProcess?.advisorApproved === false
+                                ? "#DC2626"
+                                : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {s.graduationProcess?.advisorApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.advisorApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
                         </div>
                       </div>
 
-                      {/* Department Secretary Approval Status */}
+                      {/* Department Secretary Status */}
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            s.graduationStatus === 2
+                            s.graduationProcess?.departmentSecretaryApproved
                               ? "bg-green-500"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.departmentSecretaryApproved === false
                               ? "bg-red-500"
-                              : s.graduationStatus < 1
-                              ? "bg-gray-300"
                               : "bg-yellow-500"
                           }`}
                         />
@@ -999,23 +1231,62 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Bölüm Sekreterliği
                           </div>
-                          <div
-                            className="text-sm font-medium"
+                          <div className="text-sm font-medium"
                             style={{
-                              color:
-                                s.graduationStatus === 2
-                                  ? "#059669"
-                                  : s.graduationStatus === 3
-                                  ? "#DC2626"
-                                  : "#000000",
+                              color: s.graduationProcess?.departmentSecretaryApproved
+                                ? "#059669"
+                                : s.graduationProcess?.departmentSecretaryApproved === false
+                                ? "#DC2626"
+                                : "#000000"
                             }}
                           >
-                            {s.graduationStatus === 2
+                            {s.graduationProcess?.departmentSecretaryApproved
                               ? "Onaylandı"
-                              : s.graduationStatus === 3
+                              : s.graduationProcess?.departmentSecretaryApproved === false
                               ? "Reddedildi"
-                              : s.graduationStatus < 1
-                              ? "Danışman Onayı Bekleniyor"
+                              : "Beklemede"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Faculty Dean's Office Status */}
+                      <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                        <div
+                          className={`w-3 h-3 rounded-full mr-3 ${
+                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
+                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "bg-gray-300"
+                              : s.graduationProcess?.facultyDeansOfficeApproved
+                              ? "bg-green-500"
+                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "bg-red-500"
+                              : "bg-yellow-500"
+                          }`}
+                        />
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            Fakülte Dekanlığı
+                          </div>
+                          <div className="text-sm font-medium"
+                            style={{
+                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
+                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                                ? "#6B7280"
+                                : s.graduationProcess?.facultyDeansOfficeApproved
+                                ? "#059669"
+                                : s.graduationProcess?.facultyDeansOfficeApproved === false
+                                ? "#DC2626"
+                                : "#000000"
+                            }}
+                          >
+                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                              ? "Danışman Onayı Gerekiyor"
+                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              ? "Bölüm Sekreterliği Onayı Gerekiyor"
+                              : s.graduationProcess?.facultyDeansOfficeApproved
+                              ? "Onaylandı"
+                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              ? "Reddedildi"
                               : "Beklemede"}
                           </div>
                         </div>
@@ -1027,32 +1298,62 @@ export default function GraduationApprovalPage() {
                   <div className="mt-4 flex justify-end gap-2">
                     <button
                       onClick={() => handleFacultyDeansApproval(s.id, true)}
-                      disabled={s.graduationStatus !== 1}
+                      disabled={
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === true
+                      }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-green-600 text-white hover:bg-green-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : s.graduationProcess?.facultyDeansOfficeApproved === true
+                          ? "bg-green-100 text-green-800 cursor-not-allowed"
+                          : "bg-green-600 text-white hover:bg-green-700"
                       }`}
                       title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin mezuniyet durumu henüz işleme hazır değil veya sonuçlandı"
-                          : ""
+                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          ? "Danışman onayı gerekiyor"
+                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "Bölüm sekreterliği onayı gerekiyor"
+                          : s.graduationProcess?.facultyDeansOfficeApproved === true
+                          ? "Bu öğrenci zaten onaylanmış"
+                          : "Öğrencinin mezuniyet başvurusunu onayla"
                       }
                     >
                       Onayla
                     </button>
                     <button
                       onClick={() => handleFacultyDeansApproval(s.id, false)}
-                      disabled={s.graduationStatus !== 1}
+                      disabled={
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                      }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        s.graduationStatus === 1
-                          ? "bg-red-600 text-white hover:bg-red-700"
-                          : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        !s.graduationProcess?.advisorApproved || 
+                        s.graduationProcess?.advisorApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved || 
+                        s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "bg-red-100 text-red-800 cursor-not-allowed"
+                          : "bg-red-600 text-white hover:bg-red-700"
                       }`}
                       title={
-                        s.graduationStatus !== 1
-                          ? "Bu öğrencinin mezuniyet durumu henüz işleme hazır değil veya sonuçlandı"
-                          : ""
+                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          ? "Danışman onayı gerekiyor"
+                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          ? "Bölüm sekreterliği onayı gerekiyor"
+                          : s.graduationProcess?.facultyDeansOfficeApproved === false
+                          ? "Bu öğrenci zaten reddedilmiş"
+                          : "Öğrencinin mezuniyet başvurusunu reddet"
                       }
                     >
                       Reddet
