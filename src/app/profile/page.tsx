@@ -13,7 +13,9 @@ import { User } from "@/types/auth";
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    newPassword: z
+      .string()
+      .min(6, "New password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Password confirmation is required"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -72,6 +74,7 @@ const getDepartmentText = (userType: number, staffRole?: number) => {
 export default function ProfilePage() {
   const { user: storeUser, setUser } = useAuthStore();
   const [currentUser, setCurrentUser] = useState<User | null>(storeUser);
+  const [studentData, setStudentData] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -96,6 +99,19 @@ export default function ProfilePage() {
         setCurrentUser(userData);
         setUser(userData);
         console.log("Fetched current user:", userData);
+
+        // If user is a student, fetch student-specific data
+        if (userData.userType === 0) {
+          try {
+            const studentResponse = await axiosInstance.get(
+              `/students/${userData.id}`
+            );
+            setStudentData(studentResponse.data);
+            console.log("Fetched student data:", studentResponse.data);
+          } catch (error) {
+            console.error("Error fetching student data:", error);
+          }
+        }
       } catch (error) {
         console.error("Error fetching current user:", error);
         setCurrentUser(storeUser);
@@ -203,6 +219,20 @@ export default function ProfilePage() {
                 <span className="text-gray-900">{currentUser.email}</span>
               </div>
             </div>
+
+            {/* Student ID - Only show for students */}
+            {currentUser.userType === 0 && (
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Student ID
+                </label>
+                <div className="flex items-center p-3 bg-gray-50 rounded-md">
+                  <span className="text-gray-900">
+                    {studentData?.studentNumber || "Loading..."}
+                  </span>
+                </div>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
