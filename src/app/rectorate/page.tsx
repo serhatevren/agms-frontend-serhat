@@ -1,6 +1,7 @@
 "use client";
 
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -38,6 +39,10 @@ export default function RectoratePage() {
     useState<string>("All Students");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const [lists, setLists] = useState<TopStudentList[]>([]);
+
+  // Confirmation modal states
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
 
   const faculties = ["All Students", "Engineering", "Architecture", "Science"];
 
@@ -365,20 +370,20 @@ export default function RectoratePage() {
             <div className="space-x-4">
               {!isCurrentListApprovedByRectorate() && getCurrentList() && (
                 <button
-                  onClick={handleApproveRectorate}
+                  onClick={() => setShowApproveModal(true)}
                   disabled={actionLoading}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {actionLoading ? "İşleniyor..." : "Rektörlük Onayı Ver"}
+                  Rektörlük Onayı Ver
                 </button>
               )}
               {isCurrentListApprovedByRectorate() && getCurrentList() && (
                 <button
-                  onClick={handleRevokeRectorateApproval}
+                  onClick={() => setShowRevokeModal(true)}
                   disabled={actionLoading}
                   className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {actionLoading ? "İşleniyor..." : "Onayı Geri Al"}
+                  Onayı Geri Al
                 </button>
               )}
             </div>
@@ -526,6 +531,37 @@ export default function RectoratePage() {
             </table>
           </>
         )}
+
+        {/* Confirmation Modals */}
+        <ConfirmationModal
+          isOpen={showApproveModal}
+          onClose={() => setShowApproveModal(false)}
+          onConfirm={() => {
+            setShowApproveModal(false);
+            handleApproveRectorate();
+          }}
+          title="Rektörlük Onayı"
+          message="Bu listeyi rektörlük adına onaylamak istediğinizden emin misiniz? Bu işlem geri alınabilir."
+          confirmText="Onayla"
+          cancelText="İptal"
+          confirmButtonColor="green"
+          isLoading={actionLoading}
+        />
+
+        <ConfirmationModal
+          isOpen={showRevokeModal}
+          onClose={() => setShowRevokeModal(false)}
+          onConfirm={() => {
+            setShowRevokeModal(false);
+            handleRevokeRectorateApproval();
+          }}
+          title="Rektörlük Onayını Geri Al"
+          message="Bu listenin rektörlük onayını geri almak istediğinizden emin misiniz?"
+          confirmText="Geri Al"
+          cancelText="İptal"
+          confirmButtonColor="red"
+          isLoading={actionLoading}
+        />
       </div>
     </AuthenticatedLayout>
   );
