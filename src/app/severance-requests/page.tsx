@@ -77,7 +77,7 @@ export default function SeveranceRequestsPage() {
   const { user } = useAuthStore();
   const [requests, setRequests] = useState<SeveranceRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showNewRequestModal, setShowNewRequestModal] = useState(false);
+  const [showNewRequestMessage, setShowNewRequestMessage] = useState(false);
   const [newRequest, setNewRequest] = useState({
     reason: "",
     documents: [] as File[],
@@ -144,7 +144,7 @@ export default function SeveranceRequestsPage() {
     };
 
     setRequests([request, ...requests]);
-    setShowNewRequestModal(false);
+    setShowNewRequestMessage(false);
     setNewRequest({ reason: "", documents: [] });
   };
 
@@ -189,22 +189,27 @@ export default function SeveranceRequestsPage() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
                 {user?.userType === 0
-                  ? "Ayrılık Taleplerim"
-                  : "Ayrılık Talepleri"}
+                  ? "My Severance Requests"
+                  : "Severance Requests"}
               </h1>
               <p className="text-gray-600 mt-2">
                 {user?.userType === 0
-                  ? "Üniversiteden ayrılık taleplerini görüntüleyin ve yeni talep oluşturun"
-                  : "Öğrenci ayrılık taleplerini inceleyin ve onaylayın"}
+                  ? "View your university severance requests and create a new request."
+                  : "Review and approve student severance requests."}
               </p>
             </div>
             {user?.userType === 0 && (
-              <button
-                onClick={() => setShowNewRequestModal(true)}
-                className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors"
-              >
-                Yeni Talep Oluştur
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setShowNewRequestMessage(true)}
+                  className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors"
+                >
+                  Create New Request
+                </button>
+                {showNewRequestMessage && (
+                  <span className="text-[#7c0a02] font-medium">Not responsible for this use case</span>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -215,8 +220,8 @@ export default function SeveranceRequestsPage() {
             <div className="p-6 text-center">
               <div className="text-gray-500">
                 {user?.userType === 0
-                  ? "Henüz ayrılık talebiniz bulunmamaktadır."
-                  : "Henüz ayrılık talebi bulunmamaktadır."}
+                  ? "You do not have any severance requests yet."
+                  : "There are no severance requests yet."}
               </div>
             </div>
           ) : (
@@ -227,21 +232,21 @@ export default function SeveranceRequestsPage() {
                     {user?.userType !== 0 && (
                       <>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Öğrenci
+                          Student
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Bölüm
+                          Department
                         </th>
                       </>
                     )}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Talep Tarihi
+                      Request Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Durum
+                      Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      İşlemler
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -281,7 +286,7 @@ export default function SeveranceRequestsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button className="text-[#7c0a02] hover:text-[#a50d0d] mr-3">
-                          Detaylar
+                          Details
                         </button>
                         {user?.userType !== 0 &&
                           request.status === "pending" && (
@@ -291,24 +296,24 @@ export default function SeveranceRequestsPage() {
                                   handleStatusUpdate(
                                     request.id,
                                     "approved",
-                                    "Onaylandı"
+                                    "Approved"
                                   )
                                 }
                                 className="text-green-600 hover:text-green-800 mr-3"
                               >
-                                Onayla
+                                Approve
                               </button>
                               <button
                                 onClick={() =>
                                   handleStatusUpdate(
                                     request.id,
                                     "rejected",
-                                    "Reddedildi"
+                                    "Rejected"
                                   )
                                 }
                                 className="text-red-600 hover:text-red-800"
                               >
-                                Reddet
+                                Reject
                               </button>
                             </>
                           )}
@@ -320,71 +325,6 @@ export default function SeveranceRequestsPage() {
             </div>
           )}
         </div>
-
-        {/* New Request Modal */}
-        {showNewRequestModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Yeni Ayrılık Talebi
-                </h3>
-
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ayrılık Sebebi
-                  </label>
-                  <textarea
-                    value={newRequest.reason}
-                    onChange={(e) =>
-                      setNewRequest({ ...newRequest, reason: e.target.value })
-                    }
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02]"
-                    placeholder="Ayrılık sebebinizi detaylı olarak açıklayın..."
-                  />
-                </div>
-
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Destekleyici Belgeler
-                  </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.jpg,.png"
-                    onChange={(e) =>
-                      setNewRequest({
-                        ...newRequest,
-                        documents: Array.from(e.target.files || []),
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#7c0a02]"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    PDF, DOC, DOCX, JPG, PNG formatları kabul edilir
-                  </p>
-                </div>
-
-                <div className="flex justify-end space-x-3">
-                  <button
-                    onClick={() => setShowNewRequestModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                  >
-                    İptal
-                  </button>
-                  <button
-                    onClick={handleNewRequest}
-                    disabled={!newRequest.reason.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[#7c0a02] rounded-md hover:bg-[#a50d0d] disabled:opacity-50"
-                  >
-                    Talep Oluştur
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </AuthenticatedLayout>
   );
