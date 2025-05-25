@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import { axiosInstance } from "@/lib/axios";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 const BACKEND_URL = "/graduationprocesses";
@@ -67,19 +67,19 @@ export default function GraduationApprovalPage() {
   const router = useRouter();
 
   // Toast bildirimi göster
-  const showToast = (message: string, type: 'success' | 'error' = 'error') => {
+  const showToast = (message: string, type: "success" | "error" = "error") => {
     const toastConfig = {
-      duration: type === 'error' ? 5000 : 4000,
-      position: 'top-right' as const,
+      duration: type === "error" ? 5000 : 4000,
+      position: "top-right" as const,
       style: {
-        background: type === 'error' ? '#EF4444' : '#10B981',
-        color: '#fff',
-        padding: '16px',
-        borderRadius: '8px',
+        background: type === "error" ? "#EF4444" : "#10B981",
+        color: "#fff",
+        padding: "16px",
+        borderRadius: "8px",
       },
     };
 
-    if (type === 'error') {
+    if (type === "error") {
       toast.error(message, toastConfig);
     } else {
       toast.success(message, toastConfig);
@@ -113,17 +113,21 @@ export default function GraduationApprovalPage() {
       }
 
       // Önce advisor'ın öğrencilerini al
-      const studentsRes = await axiosInstance.get(`/advisors/${user.id}/students`);
+      const studentsRes = await axiosInstance.get(
+        `/advisors/${user.id}/students`
+      );
       const studentsData = studentsRes.data.items || studentsRes.data;
 
       // Her öğrenci için graduation process bilgisini al
       const studentsWithGraduationProcess = await Promise.all(
         studentsData.map(async (student: any) => {
           try {
-            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            const graduationProcessRes = await axiosInstance.get(
+              `/graduationprocesses/by-student/${student.id}`
+            );
             return {
               ...student,
-              graduationProcess: graduationProcessRes.data
+              graduationProcess: graduationProcessRes.data,
             };
           } catch (error) {
             // Eğer graduation process bulunamazsa, varsayılan değerlerle devam et
@@ -133,8 +137,8 @@ export default function GraduationApprovalPage() {
                 advisorApproved: false,
                 departmentSecretaryApproved: false,
                 facultyDeansOfficeApproved: false,
-                studentAffairsApproved: false
-              }
+                studentAffairsApproved: false,
+              },
             };
           }
         })
@@ -142,11 +146,11 @@ export default function GraduationApprovalPage() {
 
       setStudents(studentsWithGraduationProcess);
     } catch (error: any) {
-      console.error('fetchAdvisorStudents hata detayları:', {
+      console.error("fetchAdvisorStudents hata detayları:", {
         error: error,
         response: error.response,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
       });
       handleError(error, "Öğrenci listesi alınamadı.");
     } finally {
@@ -165,24 +169,29 @@ export default function GraduationApprovalPage() {
 
       const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
       const departmentId = staffRes.data.departmentId;
-      
+
       if (!departmentId) {
         throw new Error("Bölüm bilgisi bulunamadı.");
       }
 
-      const studentsData = await fetchStudents(`/students/by-department/${departmentId}`, {
-        pageIndex: 0,
-        pageSize: 50,
-      });
+      const studentsData = await fetchStudents(
+        `/students/by-department/${departmentId}`,
+        {
+          pageIndex: 0,
+          pageSize: 50,
+        }
+      );
 
       // Her öğrenci için graduation process bilgisini al
       const studentsWithGraduationProcess = await Promise.all(
         studentsData.map(async (student: any) => {
           try {
-            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            const graduationProcessRes = await axiosInstance.get(
+              `/graduationprocesses/by-student/${student.id}`
+            );
             return {
               ...student,
-              graduationProcess: graduationProcessRes.data
+              graduationProcess: graduationProcessRes.data,
             };
           } catch (error) {
             return {
@@ -191,8 +200,8 @@ export default function GraduationApprovalPage() {
                 advisorApproved: false,
                 departmentSecretaryApproved: false,
                 facultyDeansOfficeApproved: false,
-                studentAffairsApproved: false
-              }
+                studentAffairsApproved: false,
+              },
             };
           }
         })
@@ -217,24 +226,29 @@ export default function GraduationApprovalPage() {
 
       const staffRes = await axiosInstance.get(`/staffs/${user.id}`);
       const facultyId = staffRes.data.facultyId;
-      
+
       if (!facultyId) {
         throw new Error("Fakülte bilgisi bulunamadı.");
       }
 
-      const studentsData = await fetchStudents(`/students/by-faculty/${facultyId}`, {
-        pageIndex: 0,
-        pageSize: 50,
-      });
+      const studentsData = await fetchStudents(
+        `/students/by-faculty/${facultyId}`,
+        {
+          pageIndex: 0,
+          pageSize: 50,
+        }
+      );
 
       // Her öğrenci için graduation process bilgisini al
       const studentsWithGraduationProcess = await Promise.all(
         studentsData.map(async (student: any) => {
           try {
-            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            const graduationProcessRes = await axiosInstance.get(
+              `/graduationprocesses/by-student/${student.id}`
+            );
             return {
               ...student,
-              graduationProcess: graduationProcessRes.data
+              graduationProcess: graduationProcessRes.data,
             };
           } catch (error) {
             return {
@@ -243,8 +257,8 @@ export default function GraduationApprovalPage() {
                 advisorApproved: false,
                 departmentSecretaryApproved: false,
                 facultyDeansOfficeApproved: false,
-                studentAffairsApproved: false
-              }
+                studentAffairsApproved: false,
+              },
             };
           }
         })
@@ -269,10 +283,12 @@ export default function GraduationApprovalPage() {
       const studentsWithGraduationProcess = await Promise.all(
         studentsData.map(async (student: any) => {
           try {
-            const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${student.id}`);
+            const graduationProcessRes = await axiosInstance.get(
+              `/graduationprocesses/by-student/${student.id}`
+            );
             return {
               ...student,
-              graduationProcess: graduationProcessRes.data
+              graduationProcess: graduationProcessRes.data,
             };
           } catch (error) {
             return {
@@ -281,8 +297,8 @@ export default function GraduationApprovalPage() {
                 advisorApproved: false,
                 departmentSecretaryApproved: false,
                 facultyDeansOfficeApproved: false,
-                studentAffairsApproved: false
-              }
+                studentAffairsApproved: false,
+              },
             };
           }
         })
@@ -300,19 +316,24 @@ export default function GraduationApprovalPage() {
   const handleApproval = async (studentId: string, isApproved: boolean) => {
     try {
       setLoading(true);
-      console.log('handleApproval başladı:', { studentId, isApproved });
-      
+      console.log("handleApproval başladı:", { studentId, isApproved });
+
       if (!user?.id) {
         throw new Error("Kullanıcı bilgisi bulunamadı.");
       }
 
       // Önce öğrencinin graduation process'ini al
-      console.log('Graduation process isteği yapılıyor:', `/graduationprocesses/by-student/${studentId}`);
-      const graduationProcessResponse = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
-      console.log('Graduation process yanıtı:', graduationProcessResponse.data);
-      
+      console.log(
+        "Graduation process isteği yapılıyor:",
+        `/graduationprocesses/by-student/${studentId}`
+      );
+      const graduationProcessResponse = await axiosInstance.get(
+        `/graduationprocesses/by-student/${studentId}`
+      );
+      console.log("Graduation process yanıtı:", graduationProcessResponse.data);
+
       const graduationProcessId = graduationProcessResponse.data.id;
-      console.log('Alınan graduation process ID:', graduationProcessId);
+      console.log("Alınan graduation process ID:", graduationProcessId);
 
       if (!graduationProcessId) {
         throw new Error("Öğrencinin mezuniyet süreci bulunamadı.");
@@ -320,26 +341,26 @@ export default function GraduationApprovalPage() {
 
       // Graduation process'i onayla veya reddet
       const approvalUrl = `/graduationprocesses/approve-by-advisor?graduationProcessId=${graduationProcessId}&isApproved=${isApproved}`;
-      console.log('Onay isteği yapılıyor:', approvalUrl);
-      
-      const approvalResponse = await axiosInstance.post(approvalUrl);
-      console.log('Onay yanıtı:', approvalResponse.data);
+      console.log("Onay isteği yapılıyor:", approvalUrl);
 
-      const message = isApproved 
-        ? "Öğrenci mezuniyeti başarıyla onaylandı" 
+      const approvalResponse = await axiosInstance.post(approvalUrl);
+      console.log("Onay yanıtı:", approvalResponse.data);
+
+      const message = isApproved
+        ? "Öğrenci mezuniyeti başarıyla onaylandı"
         : "Öğrenci mezuniyeti reddedildi";
-      
-      showToast(message, 'success');
-      console.log('Liste yenileniyor...');
+
+      showToast(message, "success");
+      console.log("Liste yenileniyor...");
       await fetchAdvisorStudents(); // Listeyi yenile
-      console.log('Liste yenilendi');
+      console.log("Liste yenilendi");
     } catch (error: any) {
-      console.error('Approval error detayları:', {
+      console.error("Approval error detayları:", {
         error: error,
         response: error.response,
         status: error.response?.status,
         data: error.response?.data,
-        config: error.config
+        config: error.config,
       });
 
       if (error.response?.status === 404) {
@@ -351,7 +372,7 @@ export default function GraduationApprovalPage() {
       }
     } finally {
       setLoading(false);
-      console.log('handleApproval tamamlandı');
+      console.log("handleApproval tamamlandı");
     }
   };
 
@@ -363,7 +384,10 @@ export default function GraduationApprovalPage() {
 
   useEffect(() => {
     if (!user) {
-      handleError(new Error("Kullanıcı bilgisi bulunamadı."), "Kullanıcı bilgisi bulunamadı.");
+      handleError(
+        new Error("Kullanıcı bilgisi bulunamadı."),
+        "Kullanıcı bilgisi bulunamadı."
+      );
       return;
     }
 
@@ -411,12 +435,17 @@ export default function GraduationApprovalPage() {
   );
 
   // Add these approval handler functions at component level
-  async function handleDepartmentSecretaryApproval(studentId: string, isApproved: boolean) {
+  async function handleDepartmentSecretaryApproval(
+    studentId: string,
+    isApproved: boolean
+  ) {
     try {
       setLoading(true);
-      
+
       // Önce graduation process'i al
-      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessRes = await axiosInstance.get(
+        `/graduationprocesses/by-student/${studentId}`
+      );
       const graduationProcessId = graduationProcessRes.data.id;
 
       if (!graduationProcessId) {
@@ -429,8 +458,10 @@ export default function GraduationApprovalPage() {
       );
 
       showToast(
-        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
-        'success'
+        isApproved
+          ? "Öğrenci mezuniyeti başarıyla onaylandı"
+          : "Öğrenci mezuniyeti reddedildi",
+        "success"
       );
 
       // Listeyi güncelle
@@ -449,12 +480,17 @@ export default function GraduationApprovalPage() {
   }
 
   // Faculty Deans Office onay işlemi fonksiyonunu güncelle
-  async function handleFacultyDeansApproval(studentId: string, isApproved: boolean) {
+  async function handleFacultyDeansApproval(
+    studentId: string,
+    isApproved: boolean
+  ) {
     try {
       setLoading(true);
-      
+
       // Önce graduation process'i al
-      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessRes = await axiosInstance.get(
+        `/graduationprocesses/by-student/${studentId}`
+      );
       const graduationProcessId = graduationProcessRes.data.id;
 
       if (!graduationProcessId) {
@@ -467,8 +503,10 @@ export default function GraduationApprovalPage() {
       );
 
       showToast(
-        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
-        'success'
+        isApproved
+          ? "Öğrenci mezuniyeti başarıyla onaylandı"
+          : "Öğrenci mezuniyeti reddedildi",
+        "success"
       );
 
       // Listeyi güncelle
@@ -487,12 +525,17 @@ export default function GraduationApprovalPage() {
   }
 
   // Student Affairs onay işlemi fonksiyonunu güncelle
-  async function handleStudentAffairsApproval(studentId: string, isApproved: boolean) {
+  async function handleStudentAffairsApproval(
+    studentId: string,
+    isApproved: boolean
+  ) {
     try {
       setLoading(true);
-      
+
       // Önce graduation process'i al
-      const graduationProcessRes = await axiosInstance.get(`/graduationprocesses/by-student/${studentId}`);
+      const graduationProcessRes = await axiosInstance.get(
+        `/graduationprocesses/by-student/${studentId}`
+      );
       const graduationProcessId = graduationProcessRes.data.id;
 
       if (!graduationProcessId) {
@@ -505,8 +548,10 @@ export default function GraduationApprovalPage() {
       );
 
       showToast(
-        isApproved ? "Öğrenci mezuniyeti başarıyla onaylandı" : "Öğrenci mezuniyeti reddedildi",
-        'success'
+        isApproved
+          ? "Öğrenci mezuniyeti başarıyla onaylandı"
+          : "Öğrenci mezuniyeti reddedildi",
+        "success"
       );
 
       // Listeyi güncelle
@@ -685,10 +730,16 @@ export default function GraduationApprovalPage() {
                         {s.name} {s.surname}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Bölüm: <span className="text-gray-800">{s.departmentName || "-"}</span>
+                        Bölüm:{" "}
+                        <span className="text-gray-800">
+                          {s.departmentName || "-"}
+                        </span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        Öğrenci No: <span className="text-gray-800">{s.studentNumber || "-"}</span>
+                        Öğrenci No:{" "}
+                        <span className="text-gray-800">
+                          {s.studentNumber || "-"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -714,13 +765,14 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Danışman Onayı
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
                               color: s.graduationProcess?.advisorApproved
                                 ? "#059669"
                                 : s.graduationProcess?.advisorApproved === false
                                 ? "#DC2626"
-                                : "#000000"
+                                : "#000000",
                             }}
                           >
                             {s.graduationProcess?.advisorApproved
@@ -736,11 +788,13 @@ export default function GraduationApprovalPage() {
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            !s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "bg-gray-300"
                               : s.graduationProcess?.departmentSecretaryApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -749,22 +803,29 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Bölüm Sekreterliği
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
-                                ? "#6B7280"
-                                : s.graduationProcess?.departmentSecretaryApproved
-                                ? "#059669"
-                                : s.graduationProcess?.departmentSecretaryApproved === false
-                                ? "#DC2626"
-                                : "#000000"
+                              color:
+                                !s.graduationProcess?.advisorApproved ||
+                                s.graduationProcess?.advisorApproved === false
+                                  ? "#6B7280"
+                                  : s.graduationProcess
+                                      ?.departmentSecretaryApproved
+                                  ? "#059669"
+                                  : s.graduationProcess
+                                      ?.departmentSecretaryApproved === false
+                                  ? "#DC2626"
+                                  : "#000000",
                             }}
                           >
-                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            {!s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "Danışman Onayı Gerekiyor"
                               : s.graduationProcess?.departmentSecretaryApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -775,23 +836,30 @@ export default function GraduationApprovalPage() {
                     {/* Approval Buttons */}
                     <div className="mt-4 flex justify-end gap-2">
                       <button
-                        onClick={() => handleDepartmentSecretaryApproval(s.id, true)}
+                        onClick={() =>
+                          handleDepartmentSecretaryApproval(s.id, true)
+                        }
                         disabled={
-                          !s.graduationProcess?.advisorApproved || 
+                          !s.graduationProcess?.advisorApproved ||
                           s.graduationProcess?.advisorApproved === false ||
-                          s.graduationProcess?.departmentSecretaryApproved === true
+                          s.graduationProcess?.departmentSecretaryApproved ===
+                            true
                         }
                         className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          !s.graduationProcess?.advisorApproved ||
+                          s.graduationProcess?.advisorApproved === false
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : s.graduationProcess?.departmentSecretaryApproved === true
+                            : s.graduationProcess
+                                ?.departmentSecretaryApproved === true
                             ? "bg-green-100 text-green-800 cursor-not-allowed"
                             : "bg-green-600 text-white hover:bg-green-700"
                         }`}
                         title={
-                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          !s.graduationProcess?.advisorApproved ||
+                          s.graduationProcess?.advisorApproved === false
                             ? "Danışman onayı gerekiyor"
-                            : s.graduationProcess?.departmentSecretaryApproved === true
+                            : s.graduationProcess
+                                ?.departmentSecretaryApproved === true
                             ? "Bu öğrenci zaten onaylanmış"
                             : "Öğrencinin mezuniyet başvurusunu onayla"
                         }
@@ -799,23 +867,30 @@ export default function GraduationApprovalPage() {
                         Onayla
                       </button>
                       <button
-                        onClick={() => handleDepartmentSecretaryApproval(s.id, false)}
+                        onClick={() =>
+                          handleDepartmentSecretaryApproval(s.id, false)
+                        }
                         disabled={
-                          !s.graduationProcess?.advisorApproved || 
+                          !s.graduationProcess?.advisorApproved ||
                           s.graduationProcess?.advisorApproved === false ||
-                          s.graduationProcess?.departmentSecretaryApproved === false
+                          s.graduationProcess?.departmentSecretaryApproved ===
+                            false
                         }
                         className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          !s.graduationProcess?.advisorApproved ||
+                          s.graduationProcess?.advisorApproved === false
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : s.graduationProcess?.departmentSecretaryApproved === false
+                            : s.graduationProcess
+                                ?.departmentSecretaryApproved === false
                             ? "bg-red-100 text-red-800 cursor-not-allowed"
                             : "bg-red-600 text-white hover:bg-red-700"
                         }`}
                         title={
-                          !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                          !s.graduationProcess?.advisorApproved ||
+                          s.graduationProcess?.advisorApproved === false
                             ? "Danışman onayı gerekiyor"
-                            : s.graduationProcess?.departmentSecretaryApproved === false
+                            : s.graduationProcess
+                                ?.departmentSecretaryApproved === false
                             ? "Bu öğrenci zaten reddedilmiş"
                             : "Öğrencinin mezuniyet başvurusunu reddet"
                         }
@@ -866,10 +941,16 @@ export default function GraduationApprovalPage() {
                         {s.name} {s.surname}
                       </div>
                       <div className="text-sm text-gray-600">
-                        Bölüm: <span className="text-gray-800">{s.departmentName || "-"}</span>
+                        Bölüm:{" "}
+                        <span className="text-gray-800">
+                          {s.departmentName || "-"}
+                        </span>
                       </div>
                       <div className="text-sm text-gray-600">
-                        Öğrenci No: <span className="text-gray-800">{s.studentNumber || "-"}</span>
+                        Öğrenci No:{" "}
+                        <span className="text-gray-800">
+                          {s.studentNumber || "-"}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -895,13 +976,14 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Danışman Onayı
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
                               color: s.graduationProcess?.advisorApproved
                                 ? "#059669"
                                 : s.graduationProcess?.advisorApproved === false
                                 ? "#DC2626"
-                                : "#000000"
+                                : "#000000",
                             }}
                           >
                             {s.graduationProcess?.advisorApproved
@@ -917,11 +999,13 @@ export default function GraduationApprovalPage() {
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            !s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "bg-gray-300"
                               : s.graduationProcess?.departmentSecretaryApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -930,22 +1014,29 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Bölüm Sekreterliği
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
-                                ? "#6B7280"
-                                : s.graduationProcess?.departmentSecretaryApproved
-                                ? "#059669"
-                                : s.graduationProcess?.departmentSecretaryApproved === false
-                                ? "#DC2626"
-                                : "#000000"
+                              color:
+                                !s.graduationProcess?.advisorApproved ||
+                                s.graduationProcess?.advisorApproved === false
+                                  ? "#6B7280"
+                                  : s.graduationProcess
+                                      ?.departmentSecretaryApproved
+                                  ? "#059669"
+                                  : s.graduationProcess
+                                      ?.departmentSecretaryApproved === false
+                                  ? "#DC2626"
+                                  : "#000000",
                             }}
                           >
-                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            {!s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "Danışman Onayı Gerekiyor"
                               : s.graduationProcess?.departmentSecretaryApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -956,12 +1047,16 @@ export default function GraduationApprovalPage() {
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
-                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                            !s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false ||
+                            !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                               ? "bg-gray-300"
                               : s.graduationProcess?.facultyDeansOfficeApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              : s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -970,25 +1065,39 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Fakülte Dekanlığı
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
-                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
-                              ? "#6B7280"
-                              : s.graduationProcess?.facultyDeansOfficeApproved
-                              ? "#059669"
-                              : s.graduationProcess?.facultyDeansOfficeApproved === false
-                              ? "#DC2626"
-                              : "#000000"
+                              color:
+                                !s.graduationProcess?.advisorApproved ||
+                                s.graduationProcess?.advisorApproved ===
+                                  false ||
+                                !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
+                                  ? "#6B7280"
+                                  : s.graduationProcess
+                                      ?.facultyDeansOfficeApproved
+                                  ? "#059669"
+                                  : s.graduationProcess
+                                      ?.facultyDeansOfficeApproved === false
+                                  ? "#DC2626"
+                                  : "#000000",
                             }}
                           >
-                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            {!s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "Danışman Onayı Gerekiyor"
-                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              : !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Bölüm Sekreterliği Onayı Gerekiyor"
                               : s.graduationProcess?.facultyDeansOfficeApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              : s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -999,13 +1108,19 @@ export default function GraduationApprovalPage() {
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
-                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false ||
-                            !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                            !s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false ||
+                            !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false ||
+                            !s.graduationProcess?.facultyDeansOfficeApproved ||
+                            s.graduationProcess?.facultyDeansOfficeApproved ===
+                              false
                               ? "bg-gray-300"
                               : s.graduationProcess?.studentAffairsApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.studentAffairsApproved === false
+                              : s.graduationProcess?.studentAffairsApproved ===
+                                false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -1014,28 +1129,47 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Öğrenci İşleri
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false ||
-                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false ||
-                                    !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
-                              ? "#6B7280"
-                              : s.graduationProcess?.studentAffairsApproved
-                              ? "#059669"
-                              : s.graduationProcess?.studentAffairsApproved === false
-                              ? "#DC2626"
-                              : "#000000"
+                              color:
+                                !s.graduationProcess?.advisorApproved ||
+                                s.graduationProcess?.advisorApproved ===
+                                  false ||
+                                !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false ||
+                                !s.graduationProcess
+                                  ?.facultyDeansOfficeApproved ||
+                                s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
+                                  ? "#6B7280"
+                                  : s.graduationProcess?.studentAffairsApproved
+                                  ? "#059669"
+                                  : s.graduationProcess
+                                      ?.studentAffairsApproved === false
+                                  ? "#DC2626"
+                                  : "#000000",
                             }}
                           >
-                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            {!s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "Danışman Onayı Gerekiyor"
-                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              : !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Bölüm Sekreterliği Onayı Gerekiyor"
-                              : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                              : !s.graduationProcess
+                                  ?.facultyDeansOfficeApproved ||
+                                s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
                               ? "Fakülte Dekanlığı Onayı Gerekiyor"
                               : s.graduationProcess?.studentAffairsApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.studentAffairsApproved === false
+                              : s.graduationProcess?.studentAffairsApproved ===
+                                false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -1049,32 +1183,41 @@ export default function GraduationApprovalPage() {
                     <button
                       onClick={() => handleStudentAffairsApproval(s.id, true)}
                       disabled={
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
                         !s.graduationProcess?.facultyDeansOfficeApproved ||
-                        s.graduationProcess?.facultyDeansOfficeApproved === false ||
+                        s.graduationProcess?.facultyDeansOfficeApproved ===
+                          false ||
                         s.graduationProcess?.studentAffairsApproved === true
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
                         !s.graduationProcess?.facultyDeansOfficeApproved ||
-                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                        s.graduationProcess?.facultyDeansOfficeApproved ===
+                          false
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                           : s.graduationProcess?.studentAffairsApproved === true
                           ? "bg-green-100 text-green-800 cursor-not-allowed"
                           : "bg-green-600 text-white hover:bg-green-700"
                       }`}
                       title={
-                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                        !s.graduationProcess?.advisorApproved ||
+                        s.graduationProcess?.advisorApproved === false
                           ? "Danışman onayı gerekiyor"
-                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          : !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                           ? "Bölüm sekreterliği onayı gerekiyor"
-                          : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                          : !s.graduationProcess?.facultyDeansOfficeApproved ||
+                            s.graduationProcess?.facultyDeansOfficeApproved ===
+                              false
                           ? "Fakülte dekanlığı onayı gerekiyor"
                           : s.graduationProcess?.studentAffairsApproved === true
                           ? "Bu öğrenci zaten onaylanmış"
@@ -1086,34 +1229,45 @@ export default function GraduationApprovalPage() {
                     <button
                       onClick={() => handleStudentAffairsApproval(s.id, false)}
                       disabled={
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
                         !s.graduationProcess?.facultyDeansOfficeApproved ||
-                        s.graduationProcess?.facultyDeansOfficeApproved === false ||
+                        s.graduationProcess?.facultyDeansOfficeApproved ===
+                          false ||
                         s.graduationProcess?.studentAffairsApproved === false
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
                         !s.graduationProcess?.facultyDeansOfficeApproved ||
-                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                        s.graduationProcess?.facultyDeansOfficeApproved ===
+                          false
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : s.graduationProcess?.studentAffairsApproved === false
+                          : s.graduationProcess?.studentAffairsApproved ===
+                            false
                           ? "bg-red-100 text-red-800 cursor-not-allowed"
                           : "bg-red-600 text-white hover:bg-red-700"
                       }`}
                       title={
-                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                        !s.graduationProcess?.advisorApproved ||
+                        s.graduationProcess?.advisorApproved === false
                           ? "Danışman onayı gerekiyor"
-                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          : !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                           ? "Bölüm sekreterliği onayı gerekiyor"
-                          : !s.graduationProcess?.facultyDeansOfficeApproved || s.graduationProcess?.facultyDeansOfficeApproved === false
+                          : !s.graduationProcess?.facultyDeansOfficeApproved ||
+                            s.graduationProcess?.facultyDeansOfficeApproved ===
+                              false
                           ? "Fakülte dekanlığı onayı gerekiyor"
-                          : s.graduationProcess?.studentAffairsApproved === false
+                          : s.graduationProcess?.studentAffairsApproved ===
+                            false
                           ? "Bu öğrenci zaten reddedilmiş"
                           : "Öğrencinin mezuniyet başvurusunu reddet"
                       }
@@ -1198,13 +1352,14 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Danışman Onayı
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
                               color: s.graduationProcess?.advisorApproved
                                 ? "#059669"
                                 : s.graduationProcess?.advisorApproved === false
                                 ? "#DC2626"
-                                : "#000000"
+                                : "#000000",
                             }}
                           >
                             {s.graduationProcess?.advisorApproved
@@ -1222,7 +1377,8 @@ export default function GraduationApprovalPage() {
                           className={`w-3 h-3 rounded-full mr-3 ${
                             s.graduationProcess?.departmentSecretaryApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -1231,18 +1387,22 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Bölüm Sekreterliği
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: s.graduationProcess?.departmentSecretaryApproved
+                              color: s.graduationProcess
+                                ?.departmentSecretaryApproved
                                 ? "#059669"
-                                : s.graduationProcess?.departmentSecretaryApproved === false
+                                : s.graduationProcess
+                                    ?.departmentSecretaryApproved === false
                                 ? "#DC2626"
-                                : "#000000"
+                                : "#000000",
                             }}
                           >
                             {s.graduationProcess?.departmentSecretaryApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.departmentSecretaryApproved === false
+                              : s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -1253,12 +1413,16 @@ export default function GraduationApprovalPage() {
                       <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                         <div
                           className={`w-3 h-3 rounded-full mr-3 ${
-                            !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
-                            !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                            !s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false ||
+                            !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                               ? "bg-gray-300"
                               : s.graduationProcess?.facultyDeansOfficeApproved
                               ? "bg-green-500"
-                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              : s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
                               ? "bg-red-500"
                               : "bg-yellow-500"
                           }`}
@@ -1267,25 +1431,39 @@ export default function GraduationApprovalPage() {
                           <div className="text-sm font-medium text-gray-900">
                             Fakülte Dekanlığı
                           </div>
-                          <div className="text-sm font-medium"
+                          <div
+                            className="text-sm font-medium"
                             style={{
-                              color: !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false || 
-                                    !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
-                                ? "#6B7280"
-                                : s.graduationProcess?.facultyDeansOfficeApproved
-                                ? "#059669"
-                                : s.graduationProcess?.facultyDeansOfficeApproved === false
-                                ? "#DC2626"
-                                : "#000000"
+                              color:
+                                !s.graduationProcess?.advisorApproved ||
+                                s.graduationProcess?.advisorApproved ===
+                                  false ||
+                                !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
+                                  ? "#6B7280"
+                                  : s.graduationProcess
+                                      ?.facultyDeansOfficeApproved
+                                  ? "#059669"
+                                  : s.graduationProcess
+                                      ?.facultyDeansOfficeApproved === false
+                                  ? "#DC2626"
+                                  : "#000000",
                             }}
                           >
-                            {!s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                            {!s.graduationProcess?.advisorApproved ||
+                            s.graduationProcess?.advisorApproved === false
                               ? "Danışman Onayı Gerekiyor"
-                              : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                              : !s.graduationProcess
+                                  ?.departmentSecretaryApproved ||
+                                s.graduationProcess
+                                  ?.departmentSecretaryApproved === false
                               ? "Bölüm Sekreterliği Onayı Gerekiyor"
                               : s.graduationProcess?.facultyDeansOfficeApproved
                               ? "Onaylandı"
-                              : s.graduationProcess?.facultyDeansOfficeApproved === false
+                              : s.graduationProcess
+                                  ?.facultyDeansOfficeApproved === false
                               ? "Reddedildi"
                               : "Beklemede"}
                           </div>
@@ -1299,28 +1477,35 @@ export default function GraduationApprovalPage() {
                     <button
                       onClick={() => handleFacultyDeansApproval(s.id, true)}
                       disabled={
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
                         s.graduationProcess?.facultyDeansOfficeApproved === true
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : s.graduationProcess?.facultyDeansOfficeApproved === true
+                          : s.graduationProcess?.facultyDeansOfficeApproved ===
+                            true
                           ? "bg-green-100 text-green-800 cursor-not-allowed"
                           : "bg-green-600 text-white hover:bg-green-700"
                       }`}
                       title={
-                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                        !s.graduationProcess?.advisorApproved ||
+                        s.graduationProcess?.advisorApproved === false
                           ? "Danışman onayı gerekiyor"
-                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          : !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                           ? "Bölüm sekreterliği onayı gerekiyor"
-                          : s.graduationProcess?.facultyDeansOfficeApproved === true
+                          : s.graduationProcess?.facultyDeansOfficeApproved ===
+                            true
                           ? "Bu öğrenci zaten onaylanmış"
                           : "Öğrencinin mezuniyet başvurusunu onayla"
                       }
@@ -1330,28 +1515,36 @@ export default function GraduationApprovalPage() {
                     <button
                       onClick={() => handleFacultyDeansApproval(s.id, false)}
                       disabled={
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false ||
-                        s.graduationProcess?.facultyDeansOfficeApproved === false
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false ||
+                        s.graduationProcess?.facultyDeansOfficeApproved ===
+                          false
                       }
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        !s.graduationProcess?.advisorApproved || 
+                        !s.graduationProcess?.advisorApproved ||
                         s.graduationProcess?.advisorApproved === false ||
-                        !s.graduationProcess?.departmentSecretaryApproved || 
-                        s.graduationProcess?.departmentSecretaryApproved === false
+                        !s.graduationProcess?.departmentSecretaryApproved ||
+                        s.graduationProcess?.departmentSecretaryApproved ===
+                          false
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : s.graduationProcess?.facultyDeansOfficeApproved === false
+                          : s.graduationProcess?.facultyDeansOfficeApproved ===
+                            false
                           ? "bg-red-100 text-red-800 cursor-not-allowed"
                           : "bg-red-600 text-white hover:bg-red-700"
                       }`}
                       title={
-                        !s.graduationProcess?.advisorApproved || s.graduationProcess?.advisorApproved === false
+                        !s.graduationProcess?.advisorApproved ||
+                        s.graduationProcess?.advisorApproved === false
                           ? "Danışman onayı gerekiyor"
-                          : !s.graduationProcess?.departmentSecretaryApproved || s.graduationProcess?.departmentSecretaryApproved === false
+                          : !s.graduationProcess?.departmentSecretaryApproved ||
+                            s.graduationProcess?.departmentSecretaryApproved ===
+                              false
                           ? "Bölüm sekreterliği onayı gerekiyor"
-                          : s.graduationProcess?.facultyDeansOfficeApproved === false
+                          : s.graduationProcess?.facultyDeansOfficeApproved ===
+                            false
                           ? "Bu öğrenci zaten reddedilmiş"
                           : "Öğrencinin mezuniyet başvurusunu reddet"
                       }

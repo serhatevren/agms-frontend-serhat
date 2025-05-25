@@ -85,8 +85,8 @@ export default function DashboardPage() {
                 Öğrenci Paneli
               </h2>
               <p className="text-blue-600">
-                Mezuniyet başvurunuzu yapmak ve durumunu kontrol etmek için sol
-                menüyü kullanabilirsiniz.
+                Mezuniyet durumunuzu kontrol etmek için sol menüyü
+                kullanabilirsiniz.
               </p>
             </div>
           )}
@@ -94,11 +94,11 @@ export default function DashboardPage() {
           {user.userType === 1 && (
             <div className="bg-green-50 p-4 rounded-lg">
               <h2 className="text-lg font-semibold text-green-800 mb-2">
-                Personel Paneli
+                Akademik Personel Paneli
               </h2>
               <p className="text-green-600">
-                Öğrenci başvurularını incelemek ve yönetmek için sol menüyü
-                kullanabilirsiniz.
+                Öğrenci mezuniyet durumlarını incelemek ve yönetmek için sol
+                menüyü kullanabilirsiniz.
               </p>
             </div>
           )}
