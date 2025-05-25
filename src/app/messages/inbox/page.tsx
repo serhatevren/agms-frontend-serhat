@@ -14,6 +14,7 @@ import {
   User,
   RefreshCw,
   Check,
+  Trash2,
 } from "lucide-react";
 
 export default function InboxPage() {
@@ -26,9 +27,23 @@ export default function InboxPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [studentData, setStudentData] = useState<any>(null);
   const [markingAsRead, setMarkingAsRead] = useState<string | null>(null);
+  const [deletingMessage, setDeletingMessage] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<{
+    type: "single" | "all";
+    message?: Message;
+  } | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
 
   const isStudent = user?.userType === 0;
   const isAdvisor = user?.userType === 2;
+
+  // Check for draft on component mount
+  useEffect(() => {
+    if (isAdvisor) {
+      const savedDraft = localStorage.getItem("message_draft");
+      setHasDraft(!!savedDraft);
+    }
+  }, [isAdvisor]);
 
   // Fetch student data if user is a student
   useEffect(() => {
@@ -82,6 +97,11 @@ export default function InboxPage() {
   const handleMessageSent = () => {
     // Refresh messages after sending
     fetchMessages();
+    // Check draft status
+    if (isAdvisor) {
+      const savedDraft = localStorage.getItem("message_draft");
+      setHasDraft(!!savedDraft);
+    }
   };
 
   const handleMarkAsRead = async (message: Message) => {
@@ -128,6 +148,60 @@ export default function InboxPage() {
       setError("Failed to mark all messages as read. Please try again.");
     } finally {
       setMarkingAsRead(null);
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      setDeletingMessage(messageId);
+      await messageService.deleteMessage(messageId);
+
+      // Remove the message from local state
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== messageId)
+      );
+
+      // Close expanded view if this message was selected
+      if (selectedMessage?.id === messageId) {
+        setSelectedMessage(null);
+      }
+    } catch (error: any) {
+      console.error("Error deleting message:", error);
+      setError("Failed to delete message. Please try again.");
+    } finally {
+      setDeletingMessage(null);
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleDeleteAllMessages = async () => {
+    try {
+      setDeletingMessage("all");
+
+      // Delete all messages
+      await Promise.all(
+        messages.map((msg) => messageService.deleteMessage(msg.id))
+      );
+
+      // Clear all messages from local state
+      setMessages([]);
+      setSelectedMessage(null);
+    } catch (error: any) {
+      console.error("Error deleting all messages:", error);
+      setError("Failed to delete all messages. Please try again.");
+    } finally {
+      setDeletingMessage(null);
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (!showDeleteConfirm) return;
+
+    if (showDeleteConfirm.type === "single" && showDeleteConfirm.message) {
+      handleDeleteMessage(showDeleteConfirm.message.id);
+    } else if (showDeleteConfirm.type === "all") {
+      handleDeleteAllMessages();
     }
   };
 
@@ -195,13 +269,20 @@ export default function InboxPage() {
               <Mail className="h-8 w-8 text-blue-600" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-                <p className="text-gray-600 mt-1">
-                  {isStudent
-                    ? "Messages from your advisors"
-                    : isAdvisor
-                    ? "Messages you sent to students"
-                    : "Message Center"}
-                </p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <p className="text-gray-600">
+                    {isStudent
+                      ? "Messages from your advisors"
+                      : isAdvisor
+                      ? "Messages you sent to students"
+                      : "Message Center"}
+                  </p>
+                  {isAdvisor && hasDraft && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      Draft saved
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -239,6 +320,22 @@ export default function InboxPage() {
                     {markingAsRead === "all"
                       ? "Marking..."
                       : "Mark All as Read"}
+                  </span>
+                </button>
+              )}
+              {totalMessages > 0 && (
+                <button
+                  onClick={() => setShowDeleteConfirm({ type: "all" })}
+                  disabled={deletingMessage === "all"}
+                  className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingMessage === "all" ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  <span className="text-sm">
+                    {deletingMessage === "all" ? "Deleting..." : "Delete All"}
                   </span>
                 </button>
               )}
@@ -385,6 +482,27 @@ export default function InboxPage() {
                             </span>
                           </button>
                         )}
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteConfirm({ type: "single", message });
+                          }}
+                          disabled={deletingMessage === message.id}
+                          className="flex items-center space-x-1 px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          title="Delete message"
+                        >
+                          {deletingMessage === message.id ? (
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3 w-3" />
+                          )}
+                          <span>
+                            {deletingMessage === message.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </span>
+                        </button>
                       </div>
                     </div>
 
@@ -397,9 +515,9 @@ export default function InboxPage() {
                           </p>
                         </div>
 
-                        {/* Mark as Read Button in expanded view */}
-                        {isStudent && !message.isRead && (
-                          <div className="mt-4 flex justify-end">
+                        {/* Action buttons in expanded view */}
+                        <div className="mt-4 flex justify-end space-x-3">
+                          {isStudent && !message.isRead && (
                             <button
                               onClick={() => handleMarkAsRead(message)}
                               disabled={markingAsRead === message.id}
@@ -416,8 +534,26 @@ export default function InboxPage() {
                                   : "Mark as read"}
                               </span>
                             </button>
-                          </div>
-                        )}
+                          )}
+                          <button
+                            onClick={() =>
+                              setShowDeleteConfirm({ type: "single", message })
+                            }
+                            disabled={deletingMessage === message.id}
+                            className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {deletingMessage === message.id ? (
+                              <RefreshCw className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                            <span>
+                              {deletingMessage === message.id
+                                ? "Deleting..."
+                                : "Delete message"}
+                            </span>
+                          </button>
+                        </div>
 
                         {isStudent && (
                           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -514,6 +650,56 @@ export default function InboxPage() {
           onClose={() => setShowSendMessageModal(false)}
           onMessageSent={handleMessageSent}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                  <Trash2 className="h-6 w-6 text-red-600" />
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {showDeleteConfirm.type === "single"
+                    ? "Delete Message"
+                    : "Delete All Messages"}
+                </h3>
+                <p className="text-sm text-gray-500 mb-6">
+                  {showDeleteConfirm.type === "single"
+                    ? "Are you sure you want to delete this message? This action cannot be undone."
+                    : `Are you sure you want to delete all ${totalMessages} messages? This action cannot be undone.`}
+                </p>
+                <div className="flex justify-center space-x-3">
+                  <button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    disabled={deletingMessage !== null}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    disabled={deletingMessage !== null}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {deletingMessage !== null ? (
+                      <div className="flex items-center space-x-2">
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <span>Deleting...</span>
+                      </div>
+                    ) : (
+                      "Delete"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </AuthenticatedLayout>
   );

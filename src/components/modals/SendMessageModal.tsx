@@ -1,13 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { X, Upload, FileText } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Upload, FileText, Save } from "lucide-react";
 import { messageService } from "@/services/messages";
 
 interface SendMessageModalProps {
   isOpen: boolean;
   onClose: () => void;
   onMessageSent?: () => void;
+}
+
+interface DraftMessage {
+  studentNumber: string;
+  message: string;
+  timestamp: number;
 }
 
 export default function SendMessageModal({
@@ -21,9 +27,56 @@ export default function SendMessageModal({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [hasDraft, setHasDraft] = useState(false);
+
+  const DRAFT_KEY = "message_draft";
+
+  // Load draft when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      const savedDraft = localStorage.getItem(DRAFT_KEY);
+      if (savedDraft) {
+        try {
+          const draft: DraftMessage = JSON.parse(savedDraft);
+          setStudentNumber(draft.studentNumber);
+          setMessage(draft.message);
+          setHasDraft(true);
+        } catch (error) {
+          console.error("Error loading draft:", error);
+          localStorage.removeItem(DRAFT_KEY);
+        }
+      }
+    }
+  }, [isOpen]);
+
+  // Check if there's content to save as draft
+  const hasContent = studentNumber.trim() || message.trim();
+
+  const saveDraft = () => {
+    if (!hasContent) return;
+
+    const draft: DraftMessage = {
+      studentNumber: studentNumber.trim(),
+      message: message.trim(),
+      timestamp: Date.now(),
+    };
+
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    setHasDraft(true);
+    setSuccess("Draft saved successfully!");
+
+    setTimeout(() => {
+      setSuccess(null);
+    }, 2000);
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    setHasDraft(false);
+  };
 
   const handleCancel = () => {
-    if (studentNumber.trim() || message.trim()) {
+    if (hasContent) {
       setShowCancelDialog(true);
     } else {
       onClose();
@@ -31,13 +84,24 @@ export default function SendMessageModal({
   };
 
   const handleDiscard = () => {
-    // Clear all data
+    // Clear all data and draft
     setStudentNumber("");
     setMessage("");
     setShowCancelDialog(false);
     setError(null);
     setSuccess(null);
+    clearDraft();
     onClose();
+  };
+
+  const handleSaveDraftAndClose = () => {
+    saveDraft();
+    setShowCancelDialog(false);
+
+    // Close modal after showing success message
+    setTimeout(() => {
+      onClose();
+    }, 1000);
   };
 
   const handleSend = async () => {
@@ -61,6 +125,7 @@ export default function SendMessageModal({
       });
 
       setSuccess("Message sent successfully!");
+      clearDraft(); // Clear draft after successful send
 
       // Clear form after successful send and close modal
       setTimeout(() => {
@@ -85,7 +150,16 @@ export default function SendMessageModal({
       <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Send Message</h2>
+          <div className="flex items-center space-x-3">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Send Message
+            </h2>
+            {hasDraft && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                Draft loaded
+              </span>
+            )}
+          </div>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -166,25 +240,34 @@ export default function SendMessageModal({
           <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Discard Message?
+                Save your work?
               </h3>
               <p className="text-sm text-gray-500 mb-6">
-                You have unsaved changes. Are you sure you want to discard this
-                message?
+                You have unsaved changes. Would you like to save as draft or
+                discard?
               </p>
-              <div className="flex items-center justify-end space-x-3">
+              <div className="flex flex-col space-y-3">
                 <button
-                  onClick={() => setShowCancelDialog(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  onClick={handleSaveDraftAndClose}
+                  className="flex items-center justify-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700"
                 >
-                  Keep Editing
+                  <Save className="h-4 w-4" />
+                  <span>Save as Draft</span>
                 </button>
-                <button
-                  onClick={handleDiscard}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700"
-                >
-                  Discard
-                </button>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowCancelDialog(false)}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    Keep Editing
+                  </button>
+                  <button
+                    onClick={handleDiscard}
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700"
+                  >
+                    Discard
+                  </button>
+                </div>
               </div>
             </div>
           </div>

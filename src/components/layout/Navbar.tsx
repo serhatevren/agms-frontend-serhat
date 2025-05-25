@@ -62,9 +62,26 @@ export default function Navbar({
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const handleLogout = () => {
-    logout();
-    router.push("/auth/login");
+  const handleLogout = async () => {
+    try {
+      // First clear localStorage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+
+      // Then update state
+      logout();
+
+      // Force a small delay to ensure state is updated
+      setTimeout(() => {
+        // Use window.location for more reliable navigation
+        window.location.href = "/auth/login";
+      }, 100);
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force navigation even if there's an error
+      window.location.href = "/auth/login";
+    }
   };
 
   // Close menu when clicking outside

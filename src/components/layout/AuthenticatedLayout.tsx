@@ -19,11 +19,18 @@ export default function AuthenticatedLayout({
   const router = useRouter();
   const { user, isAuthenticated, setUser } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/auth/login");                                       
+    // Check both authentication state and token existence
+    const token = localStorage.getItem("accessToken");
+
+    if (!isAuthenticated || !token) {
+      // Use window.location for more reliable navigation
+      window.location.href = "/auth/login";
       return;
     }
 
@@ -45,19 +52,19 @@ export default function AuthenticatedLayout({
       // Redirect to appropriate page based on user type
       switch (user?.userType) {
         case 0: // Student
-          router.push("/dashboard");
+          router.replace("/dashboard");
           break;
-        case 1: // Staff                                                                                                          
-          router.push("/staff");
+        case 1: // Staff
+          router.replace("/staff");
           break;
         case 2: // Advisor
-          router.push("/advisor");
+          router.replace("/advisor");
           break;
         case 3: // Admin
-          router.push("/admin");
+          router.replace("/admin");
           break;
         default:
-          router.push("/auth/login");
+          router.replace("/auth/login");
       }
     } else {
       fetchUserData();

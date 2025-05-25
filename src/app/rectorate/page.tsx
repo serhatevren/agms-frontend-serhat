@@ -25,7 +25,7 @@ interface TopStudentList {
   students: Student[];
 }
 
-export default function TopStudentsPage() {
+export default function RectoratePage() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -41,48 +41,22 @@ export default function TopStudentsPage() {
 
   const faculties = ["All Students", "Engineering", "Architecture", "Science"];
 
-  const departments: { [key: string]: string[] } = {
-    Engineering: [
-      "Bilgisayar Mühendisliği",
-      "Elektrik-Elektronik Mühendisliği",
-      "Makine Mühendisliği",
-    ],
-    Science: ["Fizik Bölümü", "Kimya Bölümü", "Matematik Bölümü"],
-    Architecture: ["Mimarlık"],
-  };
-
-  // Fakülte ve bölüm eşleştirmeleri
-  const facultyDepartmentMap = {
-    Engineering: {
-      facultyName: "Mühendislik",
-      departments: [
-        "Bilgisayar Mühendisliği",
-        "Elektrik-Elektronik Mühendisliği",
-        "Makine Mühendisliği",
-      ],
-    },
-    Science: {
-      facultyName: "Fen",
-      departments: ["Fizik Bölümü", "Kimya Bölümü", "Matematik Bölümü"],
-    },
-    Architecture: {
-      facultyName: "Mimarlık",
-      departments: ["Mimarlık"],
-    },
-  };
-
   // Seçili listeyi bulmak için yardımcı fonksiyon
   const getCurrentList = () => {
     if (selectedFaculty === "All Students") {
-      return lists.find((list) => list.topStudentListType === 2);
+      return lists.find(
+        (list) => list.topStudentListType === 2 && list.sendRectorate
+      );
     }
 
     if (!selectedDepartment) {
-      return lists.find((list) => list.topStudentListType === 2);
+      return lists.find(
+        (list) => list.topStudentListType === 2 && list.sendRectorate
+      );
     }
 
     const departmentLists = lists.filter(
-      (list) => list.topStudentListType === 0
+      (list) => list.topStudentListType === 0 && list.sendRectorate
     );
     if (!departmentLists.length) return null;
 
@@ -91,19 +65,13 @@ export default function TopStudentsPage() {
     );
   };
 
-  // Mevcut listenin onay durumunu kontrol et
-  const isCurrentListApproved = () => {
+  // Mevcut listenin rektörlük onayını kontrol et
+  const isCurrentListApprovedByRectorate = () => {
     const currentList = getCurrentList();
-    return currentList?.studentAffairsApproval || false;
+    return currentList?.rectorateApproval || false;
   };
 
-  // Mevcut listenin rektörlüğe gönderilip gönderilmediğini kontrol et
-  const isCurrentListSentToRectorate = () => {
-    const currentList = getCurrentList();
-    return currentList?.sendRectorate || false;
-  };
-
-  const handleApprove = async () => {
+  const handleApproveRectorate = async () => {
     setActionLoading(true);
     setFeedback(null);
     try {
@@ -123,7 +91,7 @@ export default function TopStudentsPage() {
       }
 
       await axios.post(
-        "http://localhost:5278/api/TopStudentLists/approve-student-affairs",
+        "http://localhost:5278/api/TopStudentLists/approve-rectorate",
         {
           topStudentListId: currentList.id,
           isApproved: true,
@@ -136,19 +104,22 @@ export default function TopStudentsPage() {
         }
       );
 
-      setFeedback({ type: "success", message: "Liste başarıyla onaylandı!" });
+      setFeedback({
+        type: "success",
+        message: "Liste başarıyla rektörlük tarafından onaylandı!",
+      });
       fetchStudents();
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setFeedback({
           type: "error",
           message:
-            error.response?.data?.message || "Onaylama işlemi başarısız oldu!",
+            error.response?.data?.message || "Rektörlük onayı başarısız oldu!",
         });
       } else {
         setFeedback({
           type: "error",
-          message: "Onaylama işlemi başarısız oldu!",
+          message: "Rektörlük onayı başarısız oldu!",
         });
       }
     } finally {
@@ -156,7 +127,7 @@ export default function TopStudentsPage() {
     }
   };
 
-  const handleRevokeApproval = async () => {
+  const handleRevokeRectorateApproval = async () => {
     setActionLoading(true);
     setFeedback(null);
     try {
@@ -176,7 +147,7 @@ export default function TopStudentsPage() {
       }
 
       await axios.post(
-        "http://localhost:5278/api/TopStudentLists/approve-student-affairs",
+        "http://localhost:5278/api/TopStudentLists/approve-rectorate",
         {
           topStudentListId: currentList.id,
           isApproved: false,
@@ -189,62 +160,9 @@ export default function TopStudentsPage() {
         }
       );
 
-      setFeedback({ type: "success", message: "Onay başarıyla geri alındı!" });
-      fetchStudents();
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setFeedback({
-          type: "error",
-          message:
-            error.response?.data?.message ||
-            "Onay geri alma işlemi başarısız oldu!",
-        });
-      } else {
-        setFeedback({
-          type: "error",
-          message: "Onay geri alma işlemi başarısız oldu!",
-        });
-      }
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSendToRectorate = async () => {
-    setActionLoading(true);
-    setFeedback(null);
-    try {
-      const currentList = getCurrentList();
-      if (!currentList) {
-        setFeedback({
-          type: "error",
-          message: "Gönderilecek liste bulunamadı!",
-        });
-        return;
-      }
-
-      const token = localStorage.getItem("accessToken");
-      if (!token) {
-        router.replace("/auth/login");
-        return;
-      }
-
-      await axios.post(
-        "http://localhost:5278/api/TopStudentLists/send-to-rectorate",
-        {
-          topStudentListId: currentList.id,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
       setFeedback({
         type: "success",
-        message: "Liste başarıyla rektörlüğe gönderildi!",
+        message: "Rektörlük onayı başarıyla geri alındı!",
       });
       fetchStudents();
     } catch (error) {
@@ -253,12 +171,12 @@ export default function TopStudentsPage() {
           type: "error",
           message:
             error.response?.data?.message ||
-            "Rektörlüğe gönderme işlemi başarısız oldu!",
+            "Rektörlük onay geri alma işlemi başarısız oldu!",
         });
       } else {
         setFeedback({
           type: "error",
-          message: "Rektörlüğe gönderme işlemi başarısız oldu!",
+          message: "Rektörlük onay geri alma işlemi başarısız oldu!",
         });
       }
     } finally {
@@ -286,11 +204,15 @@ export default function TopStudentsPage() {
       });
 
       if (Array.isArray(res.data.items) && res.data.items.length > 0) {
-        setLists(res.data.items);
+        // Sadece rektörlüğe gönderilmiş listeleri filtrele
+        const sentToRectorateLists = res.data.items.filter(
+          (list: TopStudentList) => list.sendRectorate
+        );
+        setLists(sentToRectorateLists);
       } else {
         setFeedback({
           type: "error",
-          message: "Öğrenci listesi alınamadı veya boş.",
+          message: "Rektörlüğe gönderilmiş liste bulunamadı.",
         });
       }
     } catch (err) {
@@ -319,7 +241,8 @@ export default function TopStudentsPage() {
         return;
       }
 
-      if (user.userType !== 1 || user.staffRole !== 1) {
+      // Sadece rektörlük personeli erişebilir (userType: 1, staffRole: 0)
+      if (user.userType !== 1 || user.staffRole !== 0) {
         router.replace("/dashboard");
         return;
       }
@@ -428,49 +351,35 @@ export default function TopStudentsPage() {
       <div className="p-8 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">
-            En Başarılı Öğrenciler
+            Rektörlük - En Başarılı Öğrenciler
           </h1>
           <div className="flex items-center space-x-4">
             {/* Approval Status Indicator */}
-            {isCurrentListApproved() && (
+            {isCurrentListApprovedByRectorate() && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                ✓ Onaylandı
-              </span>
-            )}
-            {isCurrentListSentToRectorate() && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                ✓ Rektörlüğe Gönderildi
+                ✓ Rektörlük Onayı Verildi
               </span>
             )}
 
             {/* Action Buttons */}
             <div className="space-x-4">
-              {!isCurrentListApproved() && (
+              {!isCurrentListApprovedByRectorate() && getCurrentList() && (
                 <button
-                  onClick={handleApprove}
+                  onClick={handleApproveRectorate}
                   disabled={actionLoading}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {actionLoading ? "İşleniyor..." : "Onayla"}
+                  {actionLoading ? "İşleniyor..." : "Rektörlük Onayı Ver"}
                 </button>
               )}
-              {isCurrentListApproved() && !isCurrentListSentToRectorate() && (
-                <>
-                  <button
-                    onClick={handleRevokeApproval}
-                    disabled={actionLoading}
-                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {actionLoading ? "İşleniyor..." : "Onayı Geri Al"}
-                  </button>
-                  <button
-                    onClick={handleSendToRectorate}
-                    disabled={actionLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {actionLoading ? "İşleniyor..." : "Rektörlüğe Gönder"}
-                  </button>
-                </>
+              {isCurrentListApprovedByRectorate() && getCurrentList() && (
+                <button
+                  onClick={handleRevokeRectorateApproval}
+                  disabled={actionLoading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {actionLoading ? "İşleniyor..." : "Onayı Geri Al"}
+                </button>
               )}
             </div>
           </div>
@@ -488,104 +397,135 @@ export default function TopStudentsPage() {
           </div>
         )}
 
-        {/* Faculty Filter Buttons */}
-        <div className="flex gap-2 mb-4">
-          {faculties.map((faculty) => (
-            <button
-              key={faculty}
-              onClick={() => handleFacultyChange(faculty)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                ${
-                  selectedFaculty === faculty
-                    ? "bg-gray-900 text-white"
-                    : "bg-white text-gray-900 hover:bg-gray-100"
-                }`}
-            >
-              {faculty}
-            </button>
-          ))}
-        </div>
-
-        {/* Department Filter Buttons */}
-        {selectedFaculty !== "All Students" && (
-          <div className="flex gap-2 mb-6">
-            {getDepartments().map((dept) => (
-              <button
-                key={dept}
-                onClick={() => setSelectedDepartment(dept)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                  ${
-                    selectedDepartment === dept
-                      ? "bg-gray-900 text-white"
-                      : "bg-white text-gray-900 hover:bg-gray-100"
-                  }`}
+        {lists.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="mx-auto h-16 w-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <svg
+                className="h-8 w-8 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                {dept}
-              </button>
-            ))}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Henüz Liste Gönderilmemiş
+            </h3>
+            <p className="text-gray-500">
+              Öğrenci İşleri tarafından onaylanmış ve rektörlüğe gönderilmiş
+              liste bulunmamaktadır.
+            </p>
           </div>
-        )}
+        ) : (
+          <>
+            {/* Faculty Filter Buttons */}
+            <div className="flex gap-2 mb-4">
+              {faculties.map((faculty) => (
+                <button
+                  key={faculty}
+                  onClick={() => handleFacultyChange(faculty)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                    ${
+                      selectedFaculty === faculty
+                        ? "bg-gray-900 text-white"
+                        : "bg-white text-gray-900 hover:bg-gray-100"
+                    }`}
+                >
+                  {faculty}
+                </button>
+              ))}
+            </div>
 
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                #
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Numara
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                İsim
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Soyisim
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Bölüm
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                Fakülte
-              </th>
-              <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
-                GNO
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {displayedStudents.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="text-center py-8 text-gray-600">
-                  Kayıt bulunamadı.
-                </td>
-              </tr>
-            ) : (
-              displayedStudents.map((student, i) => (
-                <tr key={student.studentId} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-900">{i + 1}</td>
-                  <td className="px-4 py-3 text-gray-900">
-                    {student.studentNumber}
-                  </td>
-                  <td className="px-4 py-3 text-gray-900">
-                    {student.studentName}
-                  </td>
-                  <td className="px-4 py-3 text-gray-900">
-                    {student.studentSurname}
-                  </td>
-                  <td className="px-4 py-3 text-gray-900">
-                    {student.departmentName}
-                  </td>
-                  <td className="px-4 py-3 text-gray-900">
-                    {student.facultyName}
-                  </td>
-                  <td className="px-4 py-3 text-gray-900 font-medium">
-                    {student.transcriptGpa.toFixed(2)}
-                  </td>
-                </tr>
-              ))
+            {/* Department Filter Buttons */}
+            {selectedFaculty !== "All Students" && (
+              <div className="flex gap-2 mb-6">
+                {getDepartments().map((dept) => (
+                  <button
+                    key={dept}
+                    onClick={() => setSelectedDepartment(dept)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
+                      ${
+                        selectedDepartment === dept
+                          ? "bg-gray-900 text-white"
+                          : "bg-white text-gray-900 hover:bg-gray-100"
+                      }`}
+                  >
+                    {dept}
+                  </button>
+                ))}
+              </div>
             )}
-          </tbody>
-        </table>
+
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead>
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    #
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    Numara
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    İsim
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    Soyisim
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    Bölüm
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    Fakülte
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                    GNO
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {displayedStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-gray-600">
+                      Kayıt bulunamadı.
+                    </td>
+                  </tr>
+                ) : (
+                  displayedStudents.map((student, i) => (
+                    <tr key={student.studentId} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {i + 1}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.studentNumber}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.studentName}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.studentSurname}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.departmentName}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.facultyName}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-900">
+                        {student.transcriptGpa.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </>
+        )}
       </div>
     </AuthenticatedLayout>
   );
