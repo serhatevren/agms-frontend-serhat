@@ -16,11 +16,6 @@ import Link from "next/link";
 import clsx from "clsx";
 import { usePathname } from "next/navigation";
 
-const handleSeveranceRequestClick = () => {
-  // TODO: Implement the special logic for Severance Requests
-  alert("Severance Request Clicked!");
-};
-
 function getMenuItems(user: any) {
   if (!user) return [];
   // Staff sub-roles
@@ -42,7 +37,7 @@ function getMenuItems(user: any) {
           {
             name: "Severance Requests",
             icon: <FileText size={18} />,
-            onClick: handleSeveranceRequestClick,
+            href: "/severance-requests",
           },
           {
             name: "Graduation Approval",
@@ -88,7 +83,7 @@ function getMenuItems(user: any) {
           {
             name: "Severance Requests",
             icon: <FileText size={18} />,
-            onClick: handleSeveranceRequestClick,
+            href: "/severance-requests",
           },
           { name: "Settings", icon: <Settings size={18} />, href: "/profile" },
         ];
@@ -114,7 +109,7 @@ function getMenuItems(user: any) {
       {
         name: "Severance Requests",
         icon: <FileText size={18} />,
-        onClick: handleSeveranceRequestClick,
+        href: "/severance-requests",
       },
       {
         name: "Graduation Status",
@@ -141,35 +136,21 @@ export default function Sidebar() {
     <aside className="w-64 min-h-screen bg-white border-r">
       <div className="p-6 font-bold text-lg text-gray-800">Menu</div>
       <nav className="flex flex-col space-y-2 px-4">
-        {menuItems.map((item) =>
-          item.href ? (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={clsx(
-                "flex items-center gap-3 px-4 py-2 rounded-md transition",
-                pathname === item.href
-                  ? "bg-blue-100 text-blue-700 font-bold"
-                  : "hover:bg-gray-100 text-gray-700"
-              )}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </Link>
-          ) : (
-            <button
-              key={item.name}
-              onClick={item.onClick}
-              className={clsx(
-                "flex items-center gap-3 px-4 py-2 rounded-md transition w-full text-left",
-                "hover:bg-gray-100 text-gray-700"
-              )}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </button>
-          )
-        )}
+        {menuItems.map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            className={clsx(
+              "flex items-center gap-3 px-4 py-2 rounded-md transition",
+              pathname === item.href
+                ? "bg-blue-100 text-blue-700 font-bold"
+                : "hover:bg-gray-100 text-gray-700"
+            )}
+          >
+            {item.icon}
+            <span>{item.name}</span>
+          </Link>
+        ))}
       </nav>
       <div className="absolute bottom-4 left-4 text-xs text-gray-500">N</div>
     </aside>
