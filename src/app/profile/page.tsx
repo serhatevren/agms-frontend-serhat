@@ -90,16 +90,14 @@ export default function ProfilePage() {
   useEffect(() => {
     setMounted(true);
 
-    // Fetch current user data from backend
     const fetchCurrentUser = async () => {
       try {
         const userData = await authService.getCurrentUser();
         setCurrentUser(userData);
-        setUser(userData); // Update store as well
+        setUser(userData);
         console.log("Fetched current user:", userData);
       } catch (error) {
         console.error("Error fetching current user:", error);
-        // Fallback to store user if API call fails
         setCurrentUser(storeUser);
       } finally {
         setLoading(false);
@@ -107,7 +105,7 @@ export default function ProfilePage() {
     };
 
     fetchCurrentUser();
-  }, [setUser, storeUser]);
+  }, [setUser]);
 
   const onPasswordSubmit = async (data: PasswordFormData) => {
     try {
