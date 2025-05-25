@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import AuthenticatedLayout from "@/components/layout/AuthenticatedLayout";
 import { ceremonyService } from "@/services/ceremony";
+import { axiosInstance } from "@/lib/axios";
 import {
   Ceremony,
   CeremonyStatus,
@@ -20,6 +21,7 @@ import {
   Eye,
   Search,
   Filter,
+  RefreshCw,
 } from "lucide-react";
 
 // Constants
@@ -29,6 +31,7 @@ export default function CeremonyPlanningPage() {
   const { user } = useAuthStore();
   const [ceremonies, setCeremonies] = useState<Ceremony[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updateStatusLoading, setUpdateStatusLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit" | "view">(
     "create"
@@ -73,6 +76,25 @@ export default function CeremonyPlanningPage() {
       setTotalPages(1);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateGraduationStatuses = async () => {
+    try {
+      setUpdateStatusLoading(true);
+      console.log("🔄 Updating all graduation statuses...");
+
+      await axiosInstance.put("/students/update-graduation-statuses");
+
+      console.log("✅ Graduation statuses updated successfully");
+      alert("Öğrenci mezuniyet durumları başarıyla güncellendi!");
+    } catch (error) {
+      console.error("❌ Error updating graduation statuses:", error);
+      alert(
+        "Öğrenci durumları güncellenirken bir hata oluştu. Lütfen tekrar deneyin."
+      );
+    } finally {
+      setUpdateStatusLoading(false);
     }
   };
 
@@ -265,13 +287,28 @@ export default function CeremonyPlanningPage() {
                 Mezuniyet törenlerini planlayın ve yönetin
               </p>
             </div>
-            <button
-              onClick={() => openModal("create")}
-              className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors flex items-center gap-2"
-            >
-              <Plus size={16} />
-              Yeni Tören Oluştur
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleUpdateGraduationStatuses}
+                disabled={updateStatusLoading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw
+                  size={16}
+                  className={updateStatusLoading ? "animate-spin" : ""}
+                />
+                {updateStatusLoading
+                  ? "Güncelleniyor..."
+                  : "Öğrenci Statülerini Güncelle"}
+              </button>
+              <button
+                onClick={() => openModal("create")}
+                className="bg-[#7c0a02] text-white px-4 py-2 rounded-md hover:bg-[#a50d0d] transition-colors flex items-center gap-2"
+              >
+                <Plus size={16} />
+                Yeni Tören Oluştur
+              </button>
+            </div>
           </div>
         </div>
 
