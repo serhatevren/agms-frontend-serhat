@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/services/auth";
 import { useAuthStore } from "@/store/auth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -42,9 +42,10 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError(null);
-      console.log("Login attempt with:", data);
-      const response = await authService.login(data);
-      console.log("Login response:", response);
+      const response = await authService.login({
+        email: data.email,
+        password: data.password
+      });
 
       if (
         !response ||
@@ -156,5 +157,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function LoginPageWrapper() {
+  return (
+    <Suspense>
+      <LoginPage />
+    </Suspense>
   );
 }
